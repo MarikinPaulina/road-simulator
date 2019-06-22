@@ -46,7 +46,6 @@ def animated_frames(animation_segments, animation_vertices):
     return interact(update, f=play);
 
 
-
 def save_frames(animation_segments, animation_vertices, folder):
     import matplotlib.pyplot as plt
     import numpy as np
@@ -54,24 +53,23 @@ def save_frames(animation_segments, animation_vertices, folder):
     from tqdm.auto import tqdm as tqdm
     import os
     import psutil
+    import multiprocessing
     process = psutil.Process(os.getpid())
+
+    def make_frame(f, animation_segments_f, animation_vertices_f, folder, len_animation_segments):
+        fig, ax = plt.subplots()
+        frame_segments = np.swapaxes(animation_segments_f, 0, 2)
+        frame_vertices = animation_vertices_f
+        if frame_vertices.size > 0:
+            scatterplot = ax.scatter(frame_vertices[:, 0], frame_vertices[:, 1])
+        lines = ax.plot(frame_segments[0], frame_segments[1],'k-')
+        title = ax.set_title(f"Iteration {f}/{len_animation_segments - 1}")
+        fig.savefig(os.path.join(folder, f"{f:06}.png"))
 
     os.makedirs(folder, exist_ok=True)
 
     for f in tqdm(range(len(animation_segments))):
-        print(process.memory_info().rss)  # in bytes
-        fig, ax = plt.subplots()
-        frame_segments = np.swapaxes(animation_segments[f], 0, 2)
-        frame_vertices = animation_vertices[f]
-        if frame_vertices.size > 0:
-            scatterplot = ax.scatter(frame_vertices[:, 0], frame_vertices[:, 1])
-        lines = ax.plot(frame_segments[0], frame_segments[1],'k-')
-        title = ax.set_title(f"Iteration {f}/{len(animation_segments) - 1}")
-        fig.savefig(os.path.join(folder, f"{f:06}.png"))
-        # plt.close(fig)# Clear the current axes.
-        plt.cla()
-        # Clear the current figure.
-        plt.clf()
-        # Closes all the figure windows.
-        plt.close('all')
-        del fig, ax, frame_segments, frame_vertices, scatterplot, lines, title
+        proc = multiprocessing.Process(target=make_frame, args=(f, animation_segments[f], animation_vertices[f], folder, len(animation_segments)))
+        proc.daemon=True
+        proc.start()
+        proc.join()

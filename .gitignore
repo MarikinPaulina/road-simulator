@@ -1,0 +1,7 @@
+*.pdf
+*.mp4
+*.gif
+*.png
+__pycache__/
+.ipynb_checkpoints/
+results*
