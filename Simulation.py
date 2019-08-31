@@ -54,20 +54,19 @@ def find_segment(i, tree, epsilon, segments, vertices, active_segments, segments
 def segments_adding(M:int, active_vertices, active_segments, segments_vertices, segments,d,epsilon):
     recalibrate = False
     for m in range(M):
+        for i in range(len(active_segments)-1, -1, -1):
+            recalibrate = segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate)
         if recalibrate:
-            # print("Init") #Tu jest coś dziwnego
+            # print("Nowe rozdanie") #Tu jest coś dziwnego
             active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
             recalibrate = False
-        for i in range(len(active_segments)-1, -1, -1):
-            # TODO wyrzucić to stąd
-            recalibrate = segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d)
 
     return active_segments, segments_vertices
 
-def segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, ):
-
+def segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate):
+    # breakpoint()
+    recalibrate = False ## TODO: zbędne?
     r, r_list, dist_x, dist_y = compute_dist(i, active_vertices, active_segments, segments_vertices, d, )
-    recalibrate = False
     if r > d:
         new_seg = (active_segments[i][0]+dist_x,active_segments[i][1]+dist_y)
         for j in range(len(r_list)):
@@ -81,6 +80,7 @@ def segment_adding(i, active_vertices, active_segments, segments_vertices, segme
             active_segments[i] = new_seg
             return recalibrate
     recalibrate = True
+
     recalibration(i ,r_list, segments_vertices, active_segments, active_vertices, segments, d, )
     return recalibrate
 
@@ -101,7 +101,7 @@ def compute_dist(i, active_vertices, active_segments, segments_vertices, d, ):
     return r, r_list, dist_x, dist_y
 
 def recalibration(i, r_list, segments_vertices, active_segments, active_vertices, segments, d, ):
-    closest_id = r_list.index(min(r_list))
+    closest_id = np.argmin(r_list)
     vertex = segments_vertices[i].pop(closest_id)
     if len(segments_vertices[i]) == 0:
         segments_vertices.pop(i)
