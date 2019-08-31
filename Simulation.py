@@ -56,10 +56,11 @@ def segments_adding(M:int, active_vertices, active_segments, segments_vertices, 
     for m in range(M):
         for i in range(len(active_segments)-1, -1, -1):
             recalibrate = segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate)
-        if recalibrate:
-            # print("Nowe rozdanie") #Tu jest coś dziwnego
-            active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
-            recalibrate = False
+            if recalibrate:
+                # print("Nowe rozdanie") #Tu jest coś dziwnego
+                active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
+                recalibrate = False
+                break
 
     return active_segments, segments_vertices
 

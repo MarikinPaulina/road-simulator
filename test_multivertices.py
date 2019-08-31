@@ -77,4 +77,4 @@ def test_simultaneous_breach():
     animation_segments.append(np.array(segments))
     segments = np.vstack(np.array(segments)).T
     assert len(active_vertices) == 0
-    assert len(animation_segments) < 91
+    assert len(animation_segments) == 83
