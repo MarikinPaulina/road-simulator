@@ -25,8 +25,7 @@ def reset():
     return [(0,0)], [], [], []
 
 def random_vertex(l):
-    x, y = np.random.random(2)*2*l-l
-    return np.array([x,y])
+    return np.random.random(2)*2*l-l
 
 def find_segments(vertices, segments, d, epsilon):
     active_segments = [] #segmenty które będą się rozrastać
@@ -37,12 +36,18 @@ def find_segments(vertices, segments, d, epsilon):
         if dist < d:
             vertices.pop(i)
     for i in range(len(vertices)):
-        find_segment(i, tree, epsilon, segments, vertices, active_segments, segments_vertices, )
+        find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, )
     return active_segments, segments_vertices
 
-def find_segment(i, tree, epsilon, segments, vertices, active_segments, segments_vertices, ):
+def find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, ):
     dist, nearest_segments = tree.query(vertices[i],5)
-    close = ((dist-dist[0])<epsilon)
+    close = ((dist-dist[0])< d) #0.001
+    nearest_segments = nearest_segments[close]
+    close = np.ones(len(nearest_segments), dtype=bool)
+    for s in range(1,len(nearest_segments)):
+        seg_dist = np.linalg.norm(np.array(segments[nearest_segments[0]])-np.array(segments[nearest_segments[s]]))
+        if seg_dist < 5*d:
+            close[s] = False
     for s in nearest_segments[close]:
         if segments[s] in active_segments:
             index = active_segments.index(segments[s])
@@ -57,7 +62,6 @@ def segments_adding(M:int, active_vertices, active_segments, segments_vertices, 
         for i in range(len(active_segments)-1, -1, -1):
             recalibrate = segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate)
             if recalibrate:
-                # print("Nowe rozdanie") #Tu jest coś dziwnego
                 active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
                 recalibrate = False
                 break
@@ -65,8 +69,6 @@ def segments_adding(M:int, active_vertices, active_segments, segments_vertices, 
     return active_segments, segments_vertices
 
 def segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate):
-    # breakpoint()
-    recalibrate = False ## TODO: zbędne?
     r, r_list, dist_x, dist_y = compute_dist(i, active_vertices, active_segments, segments_vertices, d, )
     if r > d:
         new_seg = (active_segments[i][0]+dist_x,active_segments[i][1]+dist_y)
