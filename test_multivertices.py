@@ -18,7 +18,7 @@ def test_twoToPlay():
     animation_segments.append(np.array(segments))
     segments = np.vstack(np.array(segments)).T
     assert len(active_vertices) == 0
-    assert len(animation_segments) == 101 #Docierają w różnych (o jeden) czasach przez wypustki. I tak samo wszędzie poniżej
+    assert len(animation_segments) == 102 #Docierają w różnych (o jeden) czasach przez wypustki. I tak samo wszędzie poniżej
 
 def test_cross():
     segments, active_vertices, animation_vertices, animation_segments = reset()

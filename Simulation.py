@@ -1,10 +1,10 @@
-from tqdm.autonotebook import tqdm
+import tqdm.autonotebook
 import numpy as np
 from scipy.spatial import ckdtree
 
 def run(N,M,Frames,l,d,epsilon):
     segments, active_vertices, animation_vertices, animation_segments = reset()
-    for n in tqdm(range(N)):
+    for n in tqdm.autonotebook.tqdm(range(N)):
         active_vertices.append(random_vertex(l))
         active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
         for f in range(Frames):
@@ -32,7 +32,7 @@ def find_segments(vertices, segments, d, epsilon):
     segments_vertices = [] #krawędzie do których będzie rozrastać się segment na odpowiednim miejscu powyżej
     tree = ckdtree.cKDTree(segments)
     for i in range(len(vertices)-1,-1,-1):
-        dist, nearest_segments = tree.query(vertices[i])
+        dist, nearest_segment = tree.query(vertices[i])
         if dist < d:
             vertices.pop(i)
     for i in range(len(vertices)):
@@ -40,21 +40,50 @@ def find_segments(vertices, segments, d, epsilon):
     return active_segments, segments_vertices
 
 def find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, ):
-    dist, nearest_segments = tree.query(vertices[i],5)
-    close = ((dist-dist[0])< d) #0.001
-    nearest_segments = nearest_segments[close]
-    close = np.ones(len(nearest_segments), dtype=bool)
-    for s in range(1,len(nearest_segments)):
-        seg_dist = np.linalg.norm(np.array(segments[nearest_segments[0]])-np.array(segments[nearest_segments[s]]))
-        if seg_dist < 5*d:
-            close[s] = False
-    for s in nearest_segments[close]:
+    dist, nearest_segment = tree.query(vertices[i])
+    nearest_segments = tree.query_ball_point(vertices[i],dist*2) ## TODO: N_jobs
+    xS = vertices[i][0]
+    yS = vertices[i][1]
+    for i1 in range(len(nearest_segments)-1,-1,-1):
+        accepted = True
+        x = segments[nearest_segments[i1]][0]
+        y = segments[nearest_segments[i1]][1]
+        dist_s = ((x-xS)**2 + (y-yS)**2)**0.5
+        for i2, seg in enumerate(segments):
+            if i2 == i1:
+                continue
+            xU = seg[0]
+            yU = seg[1]
+            dist_u = ((x-xU)**2 + (y-yU)**2)**0.5
+            dist_su = ((xS-xU)**2 + (yS-yU)**2)**0.5
+            if dist_s > max(dist_u, dist_su):
+                accepted = False
+                break
+        if not accepted:
+            nearest_segments.pop(i1)
+    for s in nearest_segments:
         if segments[s] in active_segments:
             index = active_segments.index(segments[s])
             segments_vertices[index].extend([i])
         else:
             active_segments.append(segments[s])
             segments_vertices.append([i])
+
+
+    # close = ((dist-dist[0])< 10*d)
+    # nearest_segments = nearest_segments[close]
+    # close = np.ones(len(nearest_segments), dtype=bool)
+    # for s in range(1,len(nearest_segments)):
+    #     seg_dist = np.linalg.norm(np.array(segments[nearest_segments[0]])-np.array(segments[nearest_segments[s]]))
+    #     if seg_dist < 5*d:
+    #         close[s] = False
+    # for s in nearest_segments[close]:
+    #     if segments[s] in active_segments:
+    #         index = active_segments.index(segments[s])
+    #         segments_vertices[index].extend([i])
+    #     else:
+    #         active_segments.append(segments[s])
+    #         segments_vertices.append([i])
 
 def segments_adding(M:int, active_vertices, active_segments, segments_vertices, segments,d,epsilon):
     recalibrate = False
