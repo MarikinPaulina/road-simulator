@@ -142,7 +142,8 @@ def recalibration(i, r_list, segments_vertices, active_segments, active_vertices
     if len(segments_vertices[i]) == 0:
         segments_vertices.pop(i)
         active_segments.pop(i)
-        recalibrate = not any(i in lista for lista in segments_vertices)
+        recalibrate = not any(vertex in lista for lista in segments_vertices)
+        print(recalibrate)
     else:
         x = active_vertices[vertex][0] - active_segments[i][0]
         y = active_vertices[vertex][1] - active_segments[i][1]

@@ -58,3 +58,20 @@ def test_twoEnds():
     animation_segments.append(np.array(segments))
     assert len(active_vertices) == 0
     assert len(segments) == 500
+
+def test_asymetricLoop():
+    segments, active_vertices, animation_vertices, animation_segments = reset()
+    active_vertices.append(np.array([0.5,0]))
+    segments.append((0.75,0))
+    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
+    for f in range(150):
+        L = len(segments)
+        active_segments, segments_vertices = segments_adding(10,active_vertices,active_segments,segments_vertices,segments,2e-3,2e-7)
+        if L != len(segments):
+            animation_vertices.append(np.array(active_vertices))
+            animation_segments.append(np.array(segments))
+    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
+    animation_vertices.append(np.array(active_vertices))
+    animation_segments.append(np.array(segments))
+    assert len(active_vertices) == 0
+    assert len(segments) == 500
