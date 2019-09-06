@@ -2,7 +2,7 @@ import numpy as np
 from Simulation import reset, find_segments, segments_adding
 def test_straight():
     segments, active_vertices, animation_vertices, animation_segments = reset()
-    active_vertices.append(np.array([0,1]))
+    active_vertices.append(np.array([0.,1.]))
     active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
     for f in range(100):
         L = len(segments)
@@ -19,7 +19,7 @@ def test_straight():
 
 def test_diagonal():
     segments, active_vertices, animation_vertices, animation_segments = reset()
-    active_vertices.append(np.array([1,1]))
+    active_vertices.append(np.array([1.,1.]))
     active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
     for f in range(100):
         L = len(segments)

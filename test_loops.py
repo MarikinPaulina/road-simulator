@@ -4,11 +4,11 @@ import pytest
 
 def test_lackOfLoopsCentered():
     segments, active_vertices, animation_vertices, animation_segments = reset()
-    active_vertices.append(np.array([0,1]))
-    segments.append((2e-3,0))
-    segments.append((-2e-3,0))
-    segments.append((2*2e-3,0))
-    segments.append((-2*2e-3,0))
+    active_vertices.append(np.array([0.,1.]))
+    segments.append((2e-3,0.))
+    segments.append((-2e-3,0.))
+    segments.append((2*2e-3,0.))
+    segments.append((-2*2e-3,0.))
     active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
     for f in range(50):
         L = len(segments)
@@ -24,11 +24,11 @@ def test_lackOfLoopsCentered():
 
 def test_lackOfLoopsSided():
     segments, active_vertices, animation_vertices, animation_segments = reset()
-    active_vertices.append(np.array([0,1]))
-    segments.append((2e-3,0))
-    segments.append((2*2e-3,0))
-    segments.append((3*2e-3,0))
-    segments.append((4*2e-3,0))
+    active_vertices.append(np.array([0.,1.]))
+    segments.append((2e-3,0.))
+    segments.append((2*2e-3,0.))
+    segments.append((3*2e-3,0.))
+    segments.append((4*2e-3,0.))
     active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
     for f in range(50):
         L = len(segments)
@@ -44,8 +44,8 @@ def test_lackOfLoopsSided():
 
 def test_twoEnds():
     segments, active_vertices, animation_vertices, animation_segments = reset()
-    active_vertices.append(np.array([0.5,0]))
-    segments.append((1,0))
+    active_vertices.append(np.array([0.5,0.]))
+    segments.append((1.,0.))
     active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
     for f in range(150):
         L = len(segments)

@@ -1,6 +1,8 @@
 import tqdm.autonotebook
 import numpy as np
 from scipy.spatial import ckdtree
+import numba, numba.typed
+
 
 def run(N,M,Frames,l,d,epsilon):
     segments, active_vertices, animation_vertices, animation_segments = reset()
@@ -22,14 +24,26 @@ def run(N,M,Frames,l,d,epsilon):
     return [animation_segments,animation_vertices]
 
 def reset():
-    return [(0,0)], [], [], []
+    return [(0.,0.)], [], [], []
 
 def random_vertex(l):
     return np.random.random(2)*2*l-l
 
+def empty_typed_list(element):
+    l = numba.typed.List()
+    l.append(element)
+    l.pop()
+    return l
+
+def typed_list(element):
+    l = numba.typed.List()
+    l.append(element)
+    return l
+
 def find_segments(vertices, segments, d, epsilon):
-    active_segments = [] #segmenty które będą się rozrastać
-    segments_vertices = [] #krawędzie do których będzie rozrastać się segment na odpowiednim miejscu powyżej
+    active_segments = empty_typed_list((0.5,1.5)) #segmenty które będą się rozrastać
+    segments_vertices = empty_typed_list(empty_typed_list(1)) #krawędzie do których będzie rozrastać się segment na odpowiednim miejscu powyżej
+
     tree = ckdtree.cKDTree(segments)
     for i in range(len(vertices)-1,-1,-1):
         dist, nearest_segment = tree.query(vertices[i])
@@ -44,6 +58,19 @@ def find_segments(vertices, segments, d, epsilon):
 def find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, ):
     dist, nearest_segment = tree.query(vertices[i])
     nearest_segments = tree.query_ball_point(vertices[i],dist*2) ## TODO: N_jobs
+    l = empty_typed_list(nearest_segments[0])
+    l.extend(nearest_segments)
+    segments_check(i, nearest_segments, segments, vertices, active_segments, segments_vertices, )
+    for s in nearest_segments:
+        if segments[s] in active_segments:
+            index = active_segments.index(segments[s])
+            segments_vertices[index].extend([i])
+        else:
+            active_segments.append(segments[s])
+            segments_vertices.append(typed_list(i))
+
+@numba.njit
+def segments_check(i, nearest_segments, segments, vertices, active_segments, segments_vertices, ):
     xS = vertices[i][0]
     yS = vertices[i][1]
     for i1 in range(len(nearest_segments)-1,-1,-1):
@@ -63,13 +90,6 @@ def find_segment(i, tree, d, segments, vertices, active_segments, segments_verti
                 break
         if not accepted:
             nearest_segments.pop(i1)
-    for s in nearest_segments:
-        if segments[s] in active_segments:
-            index = active_segments.index(segments[s])
-            segments_vertices[index].extend([i])
-        else:
-            active_segments.append(segments[s])
-            segments_vertices.append([i])
 
 
     # close = ((dist-dist[0])< 10*d)
