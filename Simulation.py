@@ -34,7 +34,9 @@ def find_segments(vertices, segments, d, epsilon):
     for i in range(len(vertices)-1,-1,-1):
         dist, nearest_segment = tree.query(vertices[i])
         if dist < d:
-            vertices.pop(i)
+            if not any(i in lista for lista in segments_vertices):
+                vertices.pop(i)
+
     for i in range(len(vertices)):
         find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, )
     return active_segments, segments_vertices
@@ -48,14 +50,14 @@ def find_segment(i, tree, d, segments, vertices, active_segments, segments_verti
         accepted = True
         x = segments[nearest_segments[i1]][0]
         y = segments[nearest_segments[i1]][1]
-        dist_s = ((x-xS)**2 + (y-yS)**2)**0.5
+        dist_s = ((x-xS)**2 + (y-yS)**2)
         for i2, seg in enumerate(segments):
             if i2 == i1:
                 continue
             xU = seg[0]
             yU = seg[1]
-            dist_u = ((x-xU)**2 + (y-yU)**2)**0.5
-            dist_su = ((xS-xU)**2 + (yS-yU)**2)**0.5
+            dist_u = ((x-xU)**2 + (y-yU)**2)
+            dist_su = ((xS-xU)**2 + (yS-yU)**2)
             if dist_s > max(dist_u, dist_su):
                 accepted = False
                 break
@@ -111,9 +113,11 @@ def segment_adding(i, active_vertices, active_segments, segments_vertices, segme
             segments.append(new_seg)
             active_segments[i] = new_seg
             return recalibrate
-    recalibrate = True
+    else:
+        recalibrate = True
 
-    recalibration(i ,r_list, segments_vertices, active_segments, active_vertices, segments, d, )
+
+    recalibrate = recalibration(i ,r_list, segments_vertices, active_segments, active_vertices, segments, d, )
     return recalibrate
 
 def compute_dist(i, active_vertices, active_segments, segments_vertices, d, ):
@@ -138,9 +142,12 @@ def recalibration(i, r_list, segments_vertices, active_segments, active_vertices
     if len(segments_vertices[i]) == 0:
         segments_vertices.pop(i)
         active_segments.pop(i)
+        recalibrate = not any(i in lista for lista in segments_vertices)
     else:
         x = active_vertices[vertex][0] - active_segments[i][0]
         y = active_vertices[vertex][1] - active_segments[i][1]
         r = r_list[closest_id]
         new_seg = (active_segments[i][0]+x*d/r,active_segments[i][1]+y*d/r)
         segments.append(new_seg)
+        recalibrate = True
+    return recalibrate
