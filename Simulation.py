@@ -2,6 +2,7 @@ import tqdm.autonotebook
 import numpy as np
 from scipy.spatial import ckdtree
 from segcheck import segments_check
+import numba.typed
 
 def run(N,M,Frames,l,d,epsilon):
     segments, active_vertices, animation_vertices, animation_segments = reset()
@@ -42,10 +43,17 @@ def find_segments(vertices, segments, d, epsilon):
         find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, )
     return active_segments, segments_vertices
 
+def convert_list_to_typed(L):
+    typed_L = numba.typed.List()
+    for item in L:
+        typed_L.append(item)
+    return typed_L
+
 def find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, ):
     dist, nearest_segment = tree.query(vertices[i])
     nearest_segments = tree.query_ball_point(vertices[i],dist*2) ## TODO: N_jobs
-    segments_check(vertices[i], nearest_segments, segments)
+    nearest_segments = convert_list_to_typed(nearest_segments)
+    segments_check(vertices[i], nearest_segments, np.array(segments))
     for s in nearest_segments:
         if segments[s] in active_segments:
             index = active_segments.index(segments[s])
