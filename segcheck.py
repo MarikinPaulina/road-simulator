@@ -1,6 +1,6 @@
 import numpy as np
 
-def segments_check(vertex, nearest_segments, segments, active_segments, segments_vertices, ):
+def segments_check(vertex, nearest_segments, segments, ):
     """
 
     """

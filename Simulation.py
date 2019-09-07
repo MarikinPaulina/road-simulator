@@ -45,7 +45,7 @@ def find_segments(vertices, segments, d, epsilon):
 def find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, ):
     dist, nearest_segment = tree.query(vertices[i])
     nearest_segments = tree.query_ball_point(vertices[i],dist*2) ## TODO: N_jobs
-    segments_check(vertices[i], nearest_segments, segments, active_segments, segments_vertices)
+    segments_check(vertices[i], nearest_segments, segments)
     for s in nearest_segments:
         if segments[s] in active_segments:
             index = active_segments.index(segments[s])
