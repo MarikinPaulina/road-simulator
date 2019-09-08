@@ -3,10 +3,13 @@ import numpy as np
 from scipy.spatial import ckdtree
 
 def run(N,M,Frames,l,d,epsilon):
-    segments, active_vertices, animation_vertices, animation_segments = reset()
+    segments, active_vertices, animation_vertices, animation_segments, active_segments, segments_vertices = reset()
+    # active_segments = [] #segmenty które będą się rozrastać
+    # segments_vertices = [] #krawędzie do których będzie rozrastać się segment na odpowiednim miejscu powyżej
     for n in tqdm.autonotebook.tqdm(range(N)):
-        active_vertices.append(random_vertex(l))
-        active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
+        new_vertex = random_vertex(l)
+        active_vertices.append(new_vertex)
+        active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon, active_segments, segments_vertices, new_vertex)
         for f in range(Frames):
             L = len(segments)
             active_segments, segments_vertices = segments_adding(M,active_vertices,active_segments,segments_vertices,segments,d,epsilon)
@@ -14,7 +17,7 @@ def run(N,M,Frames,l,d,epsilon):
                 animation_vertices.append(np.array(active_vertices))
                 animation_segments.append(np.array(segments))
 
-    active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
+    active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon,)
     animation_vertices.append(np.array(active_vertices))
     animation_segments.append(np.array(segments))
 
@@ -22,14 +25,32 @@ def run(N,M,Frames,l,d,epsilon):
     return [animation_segments,animation_vertices]
 
 def reset():
-    return [(0,0)], [], [], []
+    return [(0,0)], [], [], [], [], []
 
 def random_vertex(l):
     return np.random.random(2)*2*l-l
 
+def find_segments_additive(vertices, segments, d, epsilon, active_segments, segments_vertices, changed_vertices):
+    tree = ckdtree.cKDTree(segments)
+    for i in range(len(changed_vertices)-1,-1,-1):
+        dist, nearest_segment = tree.query(changed_vertices[i])
+        if dist < d:
+            for i1 in range(len(segments_vertices)):
+                for i2 in range(len(segments_vertices[i])):
+                    if segments_vertices[i1][i2][0] == changed_vertices[i][0] and segments_vertices[i1][i2][1] == changed_vertices[i][1]:
+            # if not any(i in lista for lista in segments_vertices):
+                        done = changed_vertices.pop(i)
+                        for j in range(len(vertices)-1,-1,-1):
+                            if vertices[j][0] == done[0] and vertices[j][1] == done[1]:
+                                del vertices[j]
+
+    for i in range(len(changed_vertices)):
+        find_segment(i, tree, d, segments, changed_vertices, active_segments, segments_vertices, )
+    return active_segments, segments_vertices
+
 def find_segments(vertices, segments, d, epsilon):
-    active_segments = [] #segmenty które będą się rozrastać
-    segments_vertices = [] #krawędzie do których będzie rozrastać się segment na odpowiednim miejscu powyżej
+    active_segments = []
+    segments_vertices = []
     tree = ckdtree.cKDTree(segments)
     for i in range(len(vertices)-1,-1,-1):
         dist, nearest_segment = tree.query(vertices[i])
@@ -64,12 +85,13 @@ def find_segment(i, tree, d, segments, vertices, active_segments, segments_verti
         if not accepted:
             nearest_segments.pop(i1)
     for s in nearest_segments:
-        if segments[s] in active_segments:
+        if (segments[s] in active_segments):
             index = active_segments.index(segments[s])
-            segments_vertices[index].extend([i])
+            # if (not (vertices[i] in segments_vertices[index])):
+            segments_vertices[index].extend([vertices[i]])
         else:
             active_segments.append(segments[s])
-            segments_vertices.append([i])
+            segments_vertices.append([vertices[i]])
 
 
     # close = ((dist-dist[0])< 10*d)
@@ -91,42 +113,45 @@ def segments_adding(M:int, active_vertices, active_segments, segments_vertices, 
     recalibrate = False
     for m in range(M):
         for i in range(len(active_segments)-1, -1, -1):
-            recalibrate = segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate)
+            recalibrate, changed_vertices = segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate)
             if recalibrate:
-                active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
+                active_segments, segments_vertices = find_segments_additive(active_vertices, segments, d, epsilon, active_segments, segments_vertices, changed_vertices)
                 recalibrate = False
                 break
 
     return active_segments, segments_vertices
 
 def segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate):
+    changed_vertices = []
     r, r_list, dist_x, dist_y = compute_dist(i, active_vertices, active_segments, segments_vertices, d, )
+    for j in range(len(r_list)):
+        changed_vertices.append(segments_vertices[i][j])
     if r > d:
         new_seg = (active_segments[i][0]+dist_x,active_segments[i][1]+dist_y)
         for j in range(len(r_list)):
-            x = active_vertices[segments_vertices[i][j]][0] - new_seg[0]
-            y = active_vertices[segments_vertices[i][j]][1] - new_seg[1]
+            x = segments_vertices[i][j][0] - new_seg[0]
+            y = segments_vertices[i][j][1] - new_seg[1]
             if (x**2+y**2) > r_list[j]**2:
                 recalibrate = True
                 break
         if not recalibrate:
             segments.append(new_seg)
             active_segments[i] = new_seg
-            return recalibrate
+            return recalibrate, changed_vertices
     else:
         recalibrate = True
 
 
     recalibrate = recalibration(i ,r_list, segments_vertices, active_segments, active_vertices, segments, d, )
-    return recalibrate
+    return recalibrate, changed_vertices
 
 def compute_dist(i, active_vertices, active_segments, segments_vertices, d, ):
     dist_x = 0
     dist_y = 0
     r_list = []
     for j in range(len(segments_vertices[i])):
-        x = active_vertices[segments_vertices[i][j]][0] - active_segments[i][0]
-        y = active_vertices[segments_vertices[i][j]][1] - active_segments[i][1]
+        x = segments_vertices[i][j][0] - active_segments[i][0]
+        y = segments_vertices[i][j][1] - active_segments[i][1]
         r = (x**2 + y**2)**0.5
         dist_x += x
         dist_y += y
@@ -142,13 +167,18 @@ def recalibration(i, r_list, segments_vertices, active_segments, active_vertices
     if len(segments_vertices[i]) == 0:
         segments_vertices.pop(i)
         active_segments.pop(i)
-        recalibrate = not any(vertex in lista for lista in segments_vertices)
-        print(recalibrate)
+        recalibrate = True
+        for i in range(len(segments_vertices)):
+            for j in range(len(segments_vertices[i])):
+                if segments_vertices[i][j][0] == vertex[0] and segments_vertices[i][j][1] == vertex[1]:
+                    recalibrate = False
     else:
-        x = active_vertices[vertex][0] - active_segments[i][0]
-        y = active_vertices[vertex][1] - active_segments[i][1]
+        x = vertex[0] - active_segments[i][0]
+        y = vertex[1] - active_segments[i][1]
         r = r_list[closest_id]
         new_seg = (active_segments[i][0]+x*d/r,active_segments[i][1]+y*d/r)
         segments.append(new_seg)
+        segments_vertices.pop(i)
+        active_segments.pop(i)
         recalibrate = True
     return recalibrate

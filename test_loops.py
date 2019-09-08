@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 def test_lackOfLoopsCentered():
-    segments, active_vertices, animation_vertices, animation_segments = reset()
+    segments, active_vertices, animation_vertices, animation_segments, active_segments, segments_vertices = reset()
     active_vertices.append(np.array([0,1]))
     segments.append((2e-3,0))
     segments.append((-2e-3,0))
@@ -23,7 +23,7 @@ def test_lackOfLoopsCentered():
     assert len(segments) == 504
 
 def test_lackOfLoopsSided():
-    segments, active_vertices, animation_vertices, animation_segments = reset()
+    segments, active_vertices, animation_vertices, animation_segments, active_segments, segments_vertices = reset()
     active_vertices.append(np.array([0,1]))
     segments.append((2e-3,0))
     segments.append((2*2e-3,0))
@@ -43,7 +43,7 @@ def test_lackOfLoopsSided():
     assert len(segments) == 504
 
 def test_twoEnds():
-    segments, active_vertices, animation_vertices, animation_segments = reset()
+    segments, active_vertices, animation_vertices, animation_segments, active_segments, segments_vertices = reset()
     active_vertices.append(np.array([0.5,0]))
     segments.append((1,0))
     active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
@@ -60,7 +60,7 @@ def test_twoEnds():
     assert len(segments) == 500
 
 def test_asymetricLoop():
-    segments, active_vertices, animation_vertices, animation_segments = reset()
+    segments, active_vertices, animation_vertices, animation_segments, active_segments, segments_vertices = reset()
     active_vertices.append(np.array([0.5,0]))
     segments.append((0.75,0))
     active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
@@ -74,4 +74,4 @@ def test_asymetricLoop():
     animation_vertices.append(np.array(active_vertices))
     animation_segments.append(np.array(segments))
     assert len(active_vertices) == 0
-    assert len(segments) == 500
+    assert len(segments) == 375
