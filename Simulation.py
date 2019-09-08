@@ -1,6 +1,8 @@
 import tqdm.autonotebook
 import numpy as np
 from scipy.spatial import ckdtree
+from segcheck import segments_check
+import numba.typed
 
 def run(N,M,Frames,l,d,epsilon):
     segments, active_vertices, animation_vertices, animation_segments = reset()
@@ -41,28 +43,17 @@ def find_segments(vertices, segments, d, epsilon):
         find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, )
     return active_segments, segments_vertices
 
+def convert_list_to_typed(L):
+    typed_L = numba.typed.List()
+    for item in L:
+        typed_L.append(item)
+    return typed_L
+
 def find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, ):
     dist, nearest_segment = tree.query(vertices[i])
     nearest_segments = tree.query_ball_point(vertices[i],dist*2) ## TODO: N_jobs
-    xS = vertices[i][0]
-    yS = vertices[i][1]
-    for i1 in range(len(nearest_segments)-1,-1,-1):
-        accepted = True
-        x = segments[nearest_segments[i1]][0]
-        y = segments[nearest_segments[i1]][1]
-        dist_s = ((x-xS)**2 + (y-yS)**2)
-        for i2, seg in enumerate(segments):
-            if i2 == i1:
-                continue
-            xU = seg[0]
-            yU = seg[1]
-            dist_u = ((x-xU)**2 + (y-yU)**2)
-            dist_su = ((xS-xU)**2 + (yS-yU)**2)
-            if dist_s > max(dist_u, dist_su):
-                accepted = False
-                break
-        if not accepted:
-            nearest_segments.pop(i1)
+    nearest_segments = convert_list_to_typed(nearest_segments)
+    segments_check(vertices[i], nearest_segments, np.array(segments))
     for s in nearest_segments:
         if segments[s] in active_segments:
             index = active_segments.index(segments[s])
