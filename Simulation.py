@@ -4,24 +4,48 @@ from scipy.spatial import ckdtree
 from segcheck import segments_check
 import numba.typed
 
-def run(N,M,Frames,l,d,epsilon):
+def run(N,M,Frames,l,d,epsilon, number_of_vertices = 1, test=False, initial_vertices = None, initial_segments=None):
     segments, active_vertices, animation_vertices, animation_segments = reset()
-    for n in tqdm.autonotebook.tqdm(range(N)):
-        active_vertices.append(random_vertex(l))
-        active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
-        for f in range(Frames):
-            L = len(segments)
-            active_segments, segments_vertices = segments_adding(M,active_vertices,active_segments,segments_vertices,segments,d,epsilon)
-            if L != len(segments):
-                animation_vertices.append(np.array(active_vertices))
-                animation_segments.append(np.array(segments))
+    # new_verteces = []
+    if not (initial_segments is None):
+        segments = initial_segments
+    if initial_vertices is None:
+        for i in range(number_of_vertices):
+            new_vertex = random_vertex(l)
+            # new_verteces.append(new_vertex)
+            active_vertices.append(new_vertex)
+    else:
+        active_vertices = initial_vertices
+    N -= len(active_vertices)
 
-    active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
+    with tqdm.autonotebook.tqdm(total=N) as progressbar:
+        while len(active_vertices) != 0:
+            active_segments, segments_vertices, N_new = find_segments(active_vertices, segments,d,epsilon,l, N)
+            Ndelta, N = N - N_new, N_new
+            progressbar.update(Ndelta)
+            for f in range(Frames):
+                L = len(segments)
+                active_segments, segments_vertices, N_new = segments_adding(M,active_vertices,active_segments,segments_vertices,segments,d,epsilon, l, N)
+                Ndelta, N = N - N_new, N_new
+                progressbar.update(Ndelta)
+                if L != len(segments):
+                    animation_vertices.append(np.array(active_vertices))
+                    animation_segments.append(np.array(segments))
+
+    active_segments, segments_vertices, N = find_segments(active_vertices, segments,d,epsilon, l, N)
     animation_vertices.append(np.array(active_vertices))
     animation_segments.append(np.array(segments))
 
-    segments = np.vstack(np.array(segments)).T
-    return [animation_segments,animation_vertices]
+    if test:
+        return_pack = {
+        "active_vertices" : active_vertices,
+        "animation_segments" : animation_segments,
+        "animation_vertices" : animation_vertices,
+        "segments" : segments}
+        return return_pack
+    else:
+        segments = np.vstack(np.array(segments)).T
+        return [animation_segments,animation_vertices]
 
 def reset():
     return [(0,0)], [], [], []
@@ -29,7 +53,7 @@ def reset():
 def random_vertex(l):
     return np.random.random(2)*2*l-l
 
-def find_segments(vertices, segments, d, epsilon):
+def find_segments(vertices, segments, d, epsilon,l,N):
     active_segments = [] #segmenty które będą się rozrastać
     segments_vertices = [] #krawędzie do których będzie rozrastać się segment na odpowiednim miejscu powyżej
     tree = ckdtree.cKDTree(segments)
@@ -38,10 +62,16 @@ def find_segments(vertices, segments, d, epsilon):
         if dist < d:
             if not any(i in lista for lista in segments_vertices):
                 vertices.pop(i)
+                if N != 0:
+                    new_vertex = random_vertex(l)
+                    vertices.append(new_vertex)
+                    N -= 1
+                    if N%100 == 0:
+                        print(N)
 
     for i in range(len(vertices)):
         find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, )
-    return active_segments, segments_vertices
+    return active_segments, segments_vertices, N
 
 def convert_list_to_typed(L):
     typed_L = numba.typed.List()
@@ -78,17 +108,17 @@ def find_segment(i, tree, d, segments, vertices, active_segments, segments_verti
     #         active_segments.append(segments[s])
     #         segments_vertices.append([i])
 
-def segments_adding(M:int, active_vertices, active_segments, segments_vertices, segments,d,epsilon):
+def segments_adding(M:int, active_vertices, active_segments, segments_vertices, segments,d,epsilon, l, N):
     recalibrate = False
     for m in range(M):
         for i in range(len(active_segments)-1, -1, -1):
             recalibrate = segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate)
             if recalibrate:
-                active_segments, segments_vertices = find_segments(active_vertices, segments,d,epsilon)
+                active_segments, segments_vertices, N = find_segments(active_vertices, segments,d,epsilon, l, N)
                 recalibrate = False
                 break
 
-    return active_segments, segments_vertices
+    return active_segments, segments_vertices, N
 
 def segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate):
     r, r_list, dist_x, dist_y = compute_dist(i, active_vertices, active_segments, segments_vertices, d, )
@@ -134,7 +164,6 @@ def recalibration(i, r_list, segments_vertices, active_segments, active_vertices
         segments_vertices.pop(i)
         active_segments.pop(i)
         recalibrate = not any(vertex in lista for lista in segments_vertices)
-        print(recalibrate)
     else:
         x = active_vertices[vertex][0] - active_segments[i][0]
         y = active_vertices[vertex][1] - active_segments[i][1]

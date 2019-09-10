@@ -1,77 +1,48 @@
-from Simulation import reset, find_segments, segments_adding
+from Simulation import run
 import numpy as np
 import pytest
 
 def test_lackOfLoopsCentered():
-    segments, active_vertices, animation_vertices, animation_segments = reset()
-    active_vertices.append(np.array([0,1]))
-    segments.append((2e-3,0))
-    segments.append((-2e-3,0))
-    segments.append((2*2e-3,0))
-    segments.append((-2*2e-3,0))
-    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
-    for f in range(50):
-        L = len(segments)
-        active_segments, segments_vertices = segments_adding(10,active_vertices,active_segments,segments_vertices,segments,2e-3,2e-7)
-        if L != len(segments):
-            animation_vertices.append(np.array(active_vertices))
-            animation_segments.append(np.array(segments))
-    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
-    animation_vertices.append(np.array(active_vertices))
-    animation_segments.append(np.array(segments))
-    assert len(active_vertices) == 0
-    assert len(segments) == 504
+    vertices = [np.array([0,1])]
+    segments = [(0,0),(2e-3,0),(-2e-3,0),(2*2e-3,0),(-2*2e-3,0)]
+    N = len(vertices); F = 100; M = 10
+    l = 1; d = l*2e-3; epsilon = d*1e-4
+    output = run(N, M, F, l, d, epsilon, test=True, initial_vertices=vertices, initial_segments=segments)
+    assert len(output["active_vertices"]) == 0
+    assert len(output["segments"]) == 504
 
 def test_lackOfLoopsSided():
-    segments, active_vertices, animation_vertices, animation_segments = reset()
-    active_vertices.append(np.array([0,1]))
-    segments.append((2e-3,0))
-    segments.append((2*2e-3,0))
-    segments.append((3*2e-3,0))
-    segments.append((4*2e-3,0))
-    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
-    for f in range(50):
-        L = len(segments)
-        active_segments, segments_vertices = segments_adding(10,active_vertices,active_segments,segments_vertices,segments,2e-3,2e-7)
-        if L != len(segments):
-            animation_vertices.append(np.array(active_vertices))
-            animation_segments.append(np.array(segments))
-    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
-    animation_vertices.append(np.array(active_vertices))
-    animation_segments.append(np.array(segments))
-    assert len(active_vertices) == 0
-    assert len(segments) == 504
+    vertices = [np.array([0,1])]
+    segments = [(0,0),(2e-3,0),(2*2e-3,0),(3*2e-3,0),(4*2e-3,0)]
+    N = len(vertices); F = 100; M = 10
+    l = 1; d = l*2e-3; epsilon = d*1e-4
+    output = run(N, M, F, l, d, epsilon, test=True, initial_vertices=vertices, initial_segments=segments)
+    assert len(output["active_vertices"]) == 0
+    assert len(output["segments"]) == 504
 
 def test_twoEnds():
-    segments, active_vertices, animation_vertices, animation_segments = reset()
-    active_vertices.append(np.array([0.5,0]))
-    segments.append((1,0))
-    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
-    for f in range(150):
-        L = len(segments)
-        active_segments, segments_vertices = segments_adding(10,active_vertices,active_segments,segments_vertices,segments,2e-3,2e-7)
-        if L != len(segments):
-            animation_vertices.append(np.array(active_vertices))
-            animation_segments.append(np.array(segments))
-    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
-    animation_vertices.append(np.array(active_vertices))
-    animation_segments.append(np.array(segments))
-    assert len(active_vertices) == 0
-    assert len(segments) == 500
+    vertices = [np.array([0.5,0])]
+    segments = [(0,0),(1,0)]
+    N = len(vertices); F = 100; M = 10
+    l = 1; d = l*2e-3; epsilon = d*1e-4
+    output = run(N, M, F, l, d, epsilon, test=True, initial_vertices=vertices, initial_segments=segments)
+    assert len(output["active_vertices"]) == 0
+    assert len(output["segments"]) == 500
+
+def test_GCross():
+    vertices = [np.array([0.5,0])]
+    segments = [(0,0),(1,0),(0.5,0.5),(0.5,-0.5)]
+    N = len(vertices); F = 100; M = 10
+    l = 1; d = l*2e-3; epsilon = d*1e-4
+    output = run(N, M, F, l, d, epsilon, test=True, initial_vertices=vertices, initial_segments=segments)
+    assert len(output["active_vertices"]) == 0
+    assert len(output["segments"]) == 1000
 
 def test_asymetricLoop():
-    segments, active_vertices, animation_vertices, animation_segments = reset()
-    active_vertices.append(np.array([0.5,0]))
-    segments.append((0.75,0))
-    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
-    for f in range(150):
-        L = len(segments)
-        active_segments, segments_vertices = segments_adding(10,active_vertices,active_segments,segments_vertices,segments,2e-3,2e-7)
-        if L != len(segments):
-            animation_vertices.append(np.array(active_vertices))
-            animation_segments.append(np.array(segments))
-    active_segments, segments_vertices = find_segments(active_vertices, segments,2e-3,2e-7)
-    animation_vertices.append(np.array(active_vertices))
-    animation_segments.append(np.array(segments))
-    assert len(active_vertices) == 0
-    assert len(segments) == 500
+    vertices = [np.array([0.5,0])]
+    segments = [(0,0),(0.75,0)]
+    N = len(vertices); F = 100; M = 10
+    l = 1; d = l*2e-3; epsilon = d*1e-4
+    output = run(N, M, F, l, d, epsilon, test=True, initial_vertices=vertices, initial_segments=segments)
+    assert len(output["active_vertices"]) == 0
+    assert len(output["segments"]) == 375
