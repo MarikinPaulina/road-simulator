@@ -22,6 +22,7 @@ def animated_frames(animation_segments, animation_vertices):
 
         #         lines = [ax.plot(segment[:, 0], segment[:, 1]) for segment in frame_segments]
         ax.axis('equal')
+        ax.set_ylim(-1,1)
 
         title = ax.set_title(f"Iteration {f}/{len(animation_segments) - 1}")
         fig.canvas.draw()
