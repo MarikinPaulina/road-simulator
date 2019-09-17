@@ -4,33 +4,45 @@ from scipy.spatial import ckdtree
 from segcheck import segments_check
 import numba.typed, numba
 
-def run(N,M,Frames,l,d,epsilon, number_of_vertices = 1, test=False, initial_vertices = None, initial_segments=None):
+def random_vertex(l, shapeAndDistribution):
+    if shapeAndDistribution == 'homo square':
+        return np.random.random(2)*2*l-l
+    elif shapeAndDistribution == 'homo circle':
+        r = np.random.random()
+        phi = np.random.random()*2*np.pi
+        return np.array([r*np.cos(phi),r*np.sin(phi)])
+    elif shapeAndDistribution == 'normal':
+        return np.random.normal(0,l,size=2)
+
+
+
+def run(N,M,Frames,l,d,epsilon, number_of_vertices = 1, shapeAndDistribution='homo square',test=False, initial_vertices = None, initial_segments=None):
     segments, active_vertices, animation_vertices, animation_segments = reset()
     if not (initial_segments is None):
         segments = initial_segments
     if initial_vertices is None:
         for i in range(number_of_vertices):
-            new_vertex = random_vertex(l)
+            new_vertex = random_vertex(l,shapeAndDistribution)
             active_vertices.append(new_vertex)
     else:
         active_vertices = initial_vertices
-    N -= len(active_vertices)
 
     with tqdm.autonotebook.tqdm(total=N) as progressbar:
+        N_new = N - len(active_vertices)
+        active_segments, segments_vertices, N_new = find_segments(active_vertices, segments,d,epsilon,l, N_new,shapeAndDistribution)
+        Ndelta, N = N - N_new, N_new
+        progressbar.update(Ndelta)
         while len(active_vertices) != 0:
-            active_segments, segments_vertices, N_new = find_segments(active_vertices, segments,d,epsilon,l, N)
-            Ndelta, N = N - N_new, N_new
-            progressbar.update(Ndelta)
             for f in range(Frames):
                 L = len(segments)
-                active_segments, segments_vertices, N_new = segments_adding(M,active_vertices,active_segments,segments_vertices,segments,d,epsilon, l, N)
+                active_segments, segments_vertices, N_new = segments_adding(M,active_vertices,active_segments,segments_vertices,segments,d,epsilon, l, N,shapeAndDistribution)
                 Ndelta, N = N - N_new, N_new
                 progressbar.update(Ndelta)
                 if L != len(segments):
                     animation_vertices.append(np.array(active_vertices))
                     animation_segments.append(np.array(segments))
 
-    active_segments, segments_vertices, N = find_segments(active_vertices, segments,d,epsilon, l, N)
+    active_segments, segments_vertices, N = find_segments(active_vertices, segments,d,epsilon, l, N, shapeAndDistribution)
     animation_vertices.append(np.array(active_vertices))
     animation_segments.append(np.array(segments))
 
@@ -48,10 +60,7 @@ def run(N,M,Frames,l,d,epsilon, number_of_vertices = 1, test=False, initial_vert
 def reset():
     return [(0,0)], [], [], []
 
-def random_vertex(l):
-    return np.random.random(2)*2*l-l
-
-def find_segments(vertices, segments, d, epsilon,l,N):
+def find_segments(vertices, segments, d, epsilon,l,N,shapeAndDistribution):
     active_segments = [] #segmenty które będą się rozrastać
     segments_vertices = [] #krawędzie do których będzie rozrastać się segment na odpowiednim miejscu powyżej
     tree = ckdtree.cKDTree(segments)
@@ -61,7 +70,7 @@ def find_segments(vertices, segments, d, epsilon,l,N):
             if not any(i in lista for lista in segments_vertices):
                 vertices.pop(i)
                 if N != 0:
-                    new_vertex = random_vertex(l)
+                    new_vertex = random_vertex(l,shapeAndDistribution)
                     vertices.append(new_vertex)
                     N -= 1
 
@@ -69,14 +78,14 @@ def find_segments(vertices, segments, d, epsilon,l,N):
         find_segment(i, tree, d, segments, vertices, active_segments, segments_vertices, )
     return active_segments, segments_vertices, N
 
-def find_segments_additive(tree, vertices, modified_vertices, segments, d, epsilon,l,N, active_segments, segments_vertices):
+def find_segments_additive(tree, vertices, modified_vertices, segments, d, epsilon,l,N, active_segments, segments_vertices,shapeAndDistribution):
     for i in range(len(modified_vertices)-1,-1,-1): #bierzemy teraz modyfikowane wierzchołki
         dist, nearest_segment = tree.query(vertices[modified_vertices[i]])
         if dist < d:
             deleted = modified_vertices[i]
             if not any(deleted in lista for lista in segments_vertices): #sprawdzamy czy wszystkie segmenty dotarły do danego wierzchołka
                 if N != 0:
-                    new_vertex = random_vertex(l)
+                    new_vertex = random_vertex(l,shapeAndDistribution)
                     vertices[deleted] = new_vertex
                     N -= 1
                 else:
@@ -107,7 +116,7 @@ def decrement(vertices, deleted):
             raise ValueError("Multiple instances of vertex in the list")
 
 def delete(deleted, active_segments, segments_vertices, nearest_segment):
-    for i in range(len(active_segments)):
+    for i in range(len(active_segments)-1,-1,-1):
         if nearest_segment == active_segments[i]:
             segments_vertices[i].remove(deleted)
             if len(segments_vertices[i]) == 0:
@@ -130,17 +139,22 @@ def find_segment(i, tree, d, segments, vertices, active_segments, segments_verti
             active_segments.append(s)
             segments_vertices.append([i])
 
-def segments_adding(M:int, active_vertices, active_segments, segments_vertices, segments,d,epsilon, l, N):
+def segments_adding(M:int, active_vertices, active_segments, segments_vertices, segments,d,epsilon, l, N,shapeAndDistribution):
     recalibrate = False
+    # shuffleB = False
     for m in range(M):
         for i in range(len(active_segments)-1, -1, -1):
-            recalibrate, modified_vertices, i = segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate)
-            if recalibrate:
+            recalibrate, shuffleB, modified_vertices, i = segment_adding(i, active_vertices, active_segments, segments_vertices, segments, d, recalibrate)
+            if shuffleB or recalibrate:
                 tree = ckdtree.cKDTree(segments)
-                active_segments, segments_vertices, N = find_segments_additive(tree, active_vertices, modified_vertices, segments, d, epsilon,l,N, active_segments, segments_vertices)
-                active_segments, segments_vertices = shuffle(tree, i, active_vertices, segments, d, epsilon,l,N, active_segments, segments_vertices)
-                recalibrate = False
-                break
+                if recalibrate:
+                    active_segments, segments_vertices, N = find_segments_additive(tree, active_vertices, modified_vertices, segments, d, epsilon,l,N, active_segments, segments_vertices,shapeAndDistribution)
+                    recalibrate = False
+                    break
+                if shuffleB:
+                    active_segments, segments_vertices = shuffle(tree, i, active_vertices, segments, d, epsilon,l,N, active_segments, segments_vertices)
+                    shuffleB = False
+                    break
 
     return active_segments, segments_vertices, N
 
@@ -158,20 +172,21 @@ def segment_adding(i, active_vertices, active_segments, segments_vertices, segme
         else:
             segments.append(new_seg)
             active_segments[i] = len(segments)-1
-            return recalibrate, None, i
+            return recalibrate, False, None, i
     else:
         recalibrate = True
 
-    recalibrate, modified_vertices, i = recalibration(i ,r_list, segments_vertices, active_segments, active_vertices, segments, d, )
-    return recalibrate, modified_vertices, i
+    recalibrate, shuffleB, modified_vertices, i = recalibration(i ,r_list, segments_vertices, active_segments, active_vertices, segments, d, )
+    return recalibrate, shuffleB, modified_vertices, i
 
 def shuffle(tree, i, active_vertices, segments, d, epsilon,l,N, active_segments, segments_vertices):
     # breakpoint()
-    if i == -1 or len(segments) < 3:
+    if i == -1 or len(segments) < 2:
         return active_segments, segments_vertices
-    l = len(segments)-1 if len(segments) < 5 else 5
+    l = len(segments) if len(segments) < 5 else 5
     dist, potential_segs = tree.query(np.array(segments[active_segments[i]]), l)
-    for v in segments_vertices[i]:
+    for v in range(len(segments_vertices[i])-1,-1,-1):
+        v = segments_vertices[i][v]
         dist = []
         for s in potential_segs:
             dist.append((active_vertices[v][0] - segments[s][0])**2 + (active_vertices[v][1] - segments[s][1])**2)
@@ -224,11 +239,11 @@ def recalibration(i, r_list, segments_vertices, active_segments, active_vertices
     closest_id = np.argmin(r_list)
     vertex = segments_vertices[i].pop(closest_id)
     modified_vertices = [vertex]
+    shuffleB = True
     if len(segments_vertices[i]) == 0:
         segments_vertices.pop(i)
         active_segments.pop(i)
         i = -1
-        recalibrate = not any(vertex in lista for lista in segments_vertices)
     else:
         x = active_vertices[vertex][0] - segments[active_segments[i]][0]
         y = active_vertices[vertex][1] - segments[active_segments[i]][1]
@@ -240,5 +255,6 @@ def recalibration(i, r_list, segments_vertices, active_segments, active_vertices
         segments.append(new_seg)
         active_segments.append(len(segments)-1)
         segments_vertices.append([vertex])
-        recalibrate = True
-    return recalibrate, modified_vertices, i
+        shuffleB = True
+    recalibrate = not any(vertex in lista for lista in segments_vertices)
+    return recalibrate, shuffleB, modified_vertices, i

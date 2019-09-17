@@ -1,10 +1,35 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import ipywidgets
+from ipywidgets import interact, IntSlider
+from IPython.display import display
+
+def save_pic(segments,vertices,folder,name,title=None):
+    os.makedirs(folder, exist_ok=True)
+
+    fig, ax = plt.subplots(figsize=(15, 15))
+    ax.cla()
+    ax.axis('equal')
+    # ax.set_ylim(-1,1)
+    if not title is None:
+        ax.set_title('Jednorodny kwadrat')
+    ax.scatter(segments.T[0], segments.T[1],0.5,'k')
+    if vertices.size > 0:
+        ax.scatter(vertices[:, 0], vertices[:, 1])
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+    plt.yticks(fontsize=0)
+    plt.xticks(fontsize=0)
+    plt.tick_params(axis="both", which="both", bottom=False, top=False,
+                    labelbottom=True, left=False, right=False, labelleft=True)
+    # plt.savefig('gauss.png',dpi=400)
+    fig.savefig(os.path.join(folder, name), dpi=400)
+
 def animated_frames(animation_segments, animation_vertices):
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import os
-    import ipywidgets
-    from ipywidgets import interact, IntSlider
-    from IPython.display import display
+
 
     plt.close()
     fig, ax = plt.subplots()
@@ -18,7 +43,7 @@ def animated_frames(animation_segments, animation_vertices):
         if frame_vertices.size > 0:
             scatterplot = ax.scatter(frame_vertices[:, 0], frame_vertices[:, 1])
         # TODO optimize the line below - done?
-        lines = ax.scatter(frame_segments[0], frame_segments[1],0.1,'k')
+        lines = ax.scatter(frame_segments[0], frame_segments[1],0.05,'k')
 
         #         lines = [ax.plot(segment[:, 0], segment[:, 1]) for segment in frame_segments]
         ax.axis('equal')

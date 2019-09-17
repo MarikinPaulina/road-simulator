@@ -8,7 +8,7 @@ def test_twoToPlay():
     l = 1; d = l*2e-3; epsilon = d*1e-4
     output = run(N, M, F, l, d, epsilon, test=True, initial_vertices=vertices)
     assert len(output["active_vertices"]) == 0
-    assert len(output["animation_segments"]) == 101 #Docierają w różnych (o jeden) czasach przez wypustki. I tak samo wszędzie poniżej #Chyba już jest dobrze. W sumie to już nie wiem
+    assert len(output["animation_segments"]) == 102 #Docierają w różnych (o jeden) czasach przez wypustki. I tak samo wszędzie poniżej #Chyba już jest dobrze. W sumie to już nie wiem
 
 def test_cross():
     vertices = [np.array([1,1]), np.array([1,-1]), np.array([1.74,0])]
