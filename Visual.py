@@ -5,7 +5,7 @@ import ipywidgets
 from ipywidgets import interact, IntSlider
 from IPython.display import display
 
-def save_pic(segments,vertices,folder,name,title=None):
+def show_pic(segments,vertices,folder=None,name=None,title=None):
     os.makedirs(folder, exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(15, 15))
@@ -26,7 +26,8 @@ def save_pic(segments,vertices,folder,name,title=None):
     plt.tick_params(axis="both", which="both", bottom=False, top=False,
                     labelbottom=True, left=False, right=False, labelleft=True)
     # plt.savefig('gauss.png',dpi=400)
-    fig.savefig(os.path.join(folder, name), dpi=400)
+    if folder is not None and name is not None:
+        fig.savefig(os.path.join(folder, name), dpi=400)
 
 def animated_frames(animation_segments, animation_vertices):
 

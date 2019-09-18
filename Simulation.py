@@ -54,7 +54,6 @@ def run(N,M,Frames,l,d,epsilon, number_of_vertices = 1, shapeAndDistribution='ho
         "segments" : segments}
         return return_pack
     else:
-        segments = np.vstack(np.array(segments)).T
         return [animation_segments,animation_vertices]
 
 def reset():
