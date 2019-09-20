@@ -4,9 +4,13 @@ import os
 import ipywidgets
 from ipywidgets import interact, IntSlider
 from IPython.display import display
+import time
+import tqdm.autonotebook as tqdm
 
-def show_pic(segments,vertices,folder=None,name=None,title=None):
-    os.makedirs(folder, exist_ok=True)
+def save_pic(tuple_of_arguments):
+    segments, vertices, folder, name, title = tuple_of_arguments
+    if folder is not None:
+        os.makedirs(folder, exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(15, 15))
     ax.cla()
@@ -27,7 +31,22 @@ def show_pic(segments,vertices,folder=None,name=None,title=None):
                     labelbottom=True, left=False, right=False, labelleft=True)
     # plt.savefig('gauss.png',dpi=400)
     if folder is not None and name is not None:
-        fig.savefig(os.path.join(folder, name), dpi=400)
+        fig.savefig(os.path.join(folder, name), dpi=300)
+        plt.close()
+        time.sleep(5)
+
+def save_pics(segments,vertices,F=0,folder=None,name=None,title=None):
+    if folder is not None:
+        os.makedirs(folder, exist_ok=True)
+        arguments = []
+        for f in range(F,len(segments)):
+            arguments.append((segments[f],vertices[f],folder,f"{name}_{f:04}.png",title))
+
+        with multiprocessing.Pool(2) as p:
+            outs = list(p.imap(save_pic, arguments), total=len(arguments))
+        # for f in tqdm(range(F,len(segments))):
+        #     save_pic(segments[f],vertices[f],folder,f"{name}_{f:04}.png",title)
+        #     time.sleep(5)
 
 def animated_frames(animation_segments, animation_vertices):
 
