@@ -171,7 +171,7 @@ def segment_adding(i, active_vertices, active_segments, segments_vertices, segme
         else:
             segments.append(new_seg)
             active_segments[i] = len(segments)-1
-            return recalibrate, False, None, i
+            return False, False, None, i
     else:
         recalibrate = True
 
