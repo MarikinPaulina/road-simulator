@@ -31,7 +31,8 @@ class Simulation:
         self.progressbar.update(Ndelta)
         if L != len(self.segments):
             self.animation_vertices.append(np.array(self.active_vertices))
-            self.animation_segments.append(np.array(self.segments))
+            self.animation_segments_index.append(len(self.segments))
+            # self.animation_segments.append(np.array(self.segments))
 
 
     def fin(self):
@@ -39,7 +40,8 @@ class Simulation:
         Ndelta, self.N = self.N - N_new, N_new
         self.progressbar.update(Ndelta)
         self.animation_vertices.append(np.array(self.active_vertices))
-        self.animation_segments.append(np.array(self.segments))
+        self.animation_segments_index.append(len(self.segments))
+        self.animation_segments = np.array(self.segments)
 
 
     def return_fun(self):
@@ -48,10 +50,11 @@ class Simulation:
                 "active_vertices" : self.active_vertices,
                 "animation_segments" : self.animation_segments,
                 "animation_vertices" : self.animation_vertices,
+                "animation_segments_index" : self.animation_segments_index,
                 "segments" : self.segments}
                 return return_pack
             else:
-                return [self.animation_segments,self.animation_vertices]
+                return [self.animation_segments, self.animation_segments_index, self.animation_vertices]
 
     def step(self, N):
         for i in range(len(self.active_segments)-1, -1, -1):
@@ -63,10 +66,8 @@ class Simulation:
                     recalibrate = False
                     break
                 if shuffleB:
-                    # print(self.segments_vertices)
                     self._shuffle(tree, i)
                     shuffleB = False
-                    # print(self.segments_vertices)
                     break
         return N
 
@@ -83,7 +84,7 @@ class Simulation:
 
         self.test = test
 
-        self.segments, self.active_vertices, self.animation_vertices, self.animation_segments = self._reset()
+        self.segments, self.active_vertices, self.animation_vertices, self.animation_segments_index = self._reset()
 
         if not (initial_segments is None):
             self.segments = initial_segments
@@ -105,7 +106,7 @@ class Simulation:
             return np.array([r*np.cos(phi),r*np.sin(phi)])
         elif self.random_fun == 'normal':
             return np.random.normal(0,self.l,size=2)
-        else: # self.random_fun == 'homo_square':
+        else:
             return np.random.random(size=2)*2*self.l-self.l
 
     def _find_segments(self,N):
@@ -229,7 +230,7 @@ class Simulation:
                     index = self.active_segments.index(closest)
                     if not (v in self.segments_vertices[index]):
                         self.segments_vertices[index].extend([v])
-        if len(self.segments_vertices[i]) == 0: 
+        if len(self.segments_vertices[i]) == 0:
             self.active_segments.pop(i)
             self.segments_vertices.pop(i)
 

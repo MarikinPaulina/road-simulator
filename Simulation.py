@@ -16,8 +16,8 @@ def random_vertex(l, shapeAndDistribution):
 
 
 
-def run(N,M,Frames,l,d,epsilon, number_of_vertices = 1, shapeAndDistribution='homo square',test=False, initial_vertices = None, initial_segments=None):
-    segments, active_vertices, animation_vertices, animation_segments = reset()
+def run(N,M,Frames,l,d,epsilon, number_of_vertices = 1, shapeAndDistribution=None, test=False, initial_vertices = None, initial_segments=None):
+    segments, active_vertices, animation_vertices, animation_segments_index = reset()
     if not (initial_segments is None):
         segments = initial_segments
     if initial_vertices is None:
@@ -40,21 +40,23 @@ def run(N,M,Frames,l,d,epsilon, number_of_vertices = 1, shapeAndDistribution='ho
                 progressbar.update(Ndelta)
                 if L != len(segments):
                     animation_vertices.append(np.array(active_vertices))
-                    animation_segments.append(np.array(segments))
+                    animation_segments_index.append(len(segments))
 
     active_segments, segments_vertices, N = find_segments(active_vertices, segments,d,epsilon, l, N, shapeAndDistribution)
     animation_vertices.append(np.array(active_vertices))
-    animation_segments.append(np.array(segments))
+    animation_segments_index.append(len(segments)-1)
+    animation_segments = np.array(segments)
 
     if test:
         return_pack = {
         "active_vertices" : active_vertices,
         "animation_segments" : animation_segments,
         "animation_vertices" : animation_vertices,
+        "animation_segments_index" : animation_segments_index,
         "segments" : segments}
         return return_pack
     else:
-        return [animation_segments,animation_vertices]
+        return [animation_segments, animation_segments_index, animation_vertices]
 
 def reset():
     return [(0,0)], [], [], []

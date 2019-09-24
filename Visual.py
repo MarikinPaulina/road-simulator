@@ -35,11 +35,11 @@ def save_pic(tuple_of_arguments):
         plt.close()
         time.sleep(5)
 
-def save_pics(segments,vertices,F=0,folder=None,name=None,title=None):
+def save_pics(segments,indexes,vertices,F=0,folder=None,name=None,title=None):
     if folder is not None:
         os.makedirs(folder, exist_ok=True)
         arguments = []
-        for f in range(F,len(segments)):
+        for f in range(F,len(vertices)):
             arguments.append((segments[f],vertices[f],folder,f"{name}_{f:04}.png",title))
 
         with multiprocessing.Pool(2) as p:
@@ -48,7 +48,7 @@ def save_pics(segments,vertices,F=0,folder=None,name=None,title=None):
         #     save_pic(segments[f],vertices[f],folder,f"{name}_{f:04}.png",title)
         #     time.sleep(5)
 
-def animated_frames(animation_segments, animation_vertices):
+def animated_frames(animation_segments, animation_index, animation_vertices):
 
 
     plt.close()
@@ -57,7 +57,7 @@ def animated_frames(animation_segments, animation_vertices):
 
     def update(f: int = 0):
         ax.cla()
-        frame_segments = animation_segments[f].T
+        frame_segments = animation_segments[:animation_index[f]].T
         #         frame_segments = animation_segments[f]
         frame_vertices = animation_vertices[f]
         if frame_vertices.size > 0:
@@ -67,7 +67,7 @@ def animated_frames(animation_segments, animation_vertices):
 
         #         lines = [ax.plot(segment[:, 0], segment[:, 1]) for segment in frame_segments]
         ax.axis('equal')
-        ax.set_ylim(-1,1)
+        # ax.set_ylim(-1,1)
 
         title = ax.set_title(f"Iteration {f}/{len(animation_segments) - 1}")
         fig.canvas.draw()
@@ -85,7 +85,7 @@ def animated_frames(animation_segments, animation_vertices):
         disabled=False
     )
 
-    slider = IntSlider(min=0, max=len(animation_segments) - 1, step=1)
+    slider = IntSlider(min=0, max=len(animation_index) - 1, step=1)
     #     w = interactive()
     link = ipywidgets.jslink((play, 'value'), (slider, 'value'))
     display(slider)

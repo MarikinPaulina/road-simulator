@@ -1,0 +1,20 @@
+from Class_rewrite import Simulation
+import numpy as np
+
+l = 1
+d = l*2e-3
+epsilon = d*1e-4
+
+N = 500 #number of vertexes
+Frames = 10 #number of frames between adding vercites
+M = 50 #number of segment adding iteration between adding vertices
+M = int(M/Frames)
+dN = 6
+
+np.random.seed(3)
+def profiling():
+    sim = Simulation(N, dN, M, Frames, l/2, d, epsilon, 'normal')
+    animation_segments,animation_seg_index,animation_vertices = sim.run()
+
+%load_ext line_profiler
+%lprun -m Simulation -m Class_rewrite profiling()
