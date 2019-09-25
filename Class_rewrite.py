@@ -6,8 +6,8 @@ import numba.typed, numba
 
 class Simulation:
 
-    def __init__(self, N=100, dN=1, M=5, Frames=10, l=1, d=2e-3, epsilon=2e-7, random_fun=None, test=False, initial_vertices=None, initial_segments=None):
-        self.reset(N, dN, M, Frames, l, d, epsilon, random_fun, test, initial_vertices, initial_segments)
+    def __init__(self, N=100, dN=1, M=5, l=1, d=2e-3, epsilon=2e-7, random_fun=None, test=False, initial_vertices=None, initial_segments=None):
+        self.reset(N, dN, M, l, d, epsilon, random_fun, test, initial_vertices, initial_segments)
 
     def run(self):
         with tqdm.autonotebook.tqdm(total=self.N) as self.progressbar:
@@ -32,7 +32,6 @@ class Simulation:
         if L != len(self.segments):
             self.animation_vertices.append(np.array(self.active_vertices))
             self.animation_segments_index.append(len(self.segments))
-            # self.animation_segments.append(np.array(self.segments))
 
 
     def fin(self):
@@ -45,16 +44,16 @@ class Simulation:
 
 
     def return_fun(self):
-            if self.test:
-                return_pack = {
-                "active_vertices" : self.active_vertices,
-                "animation_segments" : self.animation_segments,
-                "animation_vertices" : self.animation_vertices,
-                "animation_segments_index" : self.animation_segments_index,
-                "segments" : self.segments}
-                return return_pack
-            else:
-                return [self.animation_segments, self.animation_segments_index, self.animation_vertices]
+        if self.test:
+            return_pack = {
+            "active_vertices" : self.active_vertices,
+            "animation_segments" : self.animation_segments,
+            "animation_vertices" : self.animation_vertices,
+            "animation_segments_index" : self.animation_segments_index,
+            "segments" : self.segments}
+            return return_pack
+        else:
+            return self.animation_segments, self.animation_segments_index, self.animation_vertices
 
     def step(self, N):
         for i in range(len(self.active_segments)-1, -1, -1):
@@ -72,11 +71,10 @@ class Simulation:
         return N
 
 
-    def reset(self, N=100, dN=1, M=5, Frames=10, l=1, d=2e-3, epsilon=2e-7, random_fun='homo square', test=False, initial_vertices=None, initial_segments=None):
+    def reset(self, N=100, dN=1, M=5, l=1, d=2e-3, epsilon=2e-7, random_fun='homo square', test=False, initial_vertices=None, initial_segments=None):
         self.N = N
         self.dN = dN
         self.M = M
-        self.Frames = Frames
 
         self.l = l
         self.d = d
@@ -100,6 +98,7 @@ class Simulation:
         return [(0,0)], [], [], []
 
     def _random_vertex(self):
+        print(self.N)
         if self.random_fun == 'homo circle':
             r = np.random.random()*self.l
             phi = np.random.random()*2*np.pi

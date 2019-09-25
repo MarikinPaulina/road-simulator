@@ -7,7 +7,7 @@ def test_straight():
     l = 1; d = l*2e-3; epsilon = d*1e-4
     output = run(N, M, F, l, d, epsilon, test=True, initial_vertices=vertices)
     assert len(output["active_vertices"]) == 0
-    assert len(output["animation_segments"]) == 51
+    assert len(output["animation_segments_index"]) == 51
 
 def test_diagonal():
     vertices = [np.array([1,1])]
@@ -15,4 +15,4 @@ def test_diagonal():
     l = 1; d = l*2e-3; epsilon = d*1e-4
     output = run(N, M, F, l, d, epsilon, test=True, initial_vertices=vertices)
     assert len(output["active_vertices"]) == 0
-    assert len(output["animation_segments"]) == 72
+    assert len(output["animation_segments_index"]) == 72
