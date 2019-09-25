@@ -18,26 +18,27 @@ class Simulation:
             return self.return_fun()
 
     def start(self):
-        N_new = self._find_segments(self.N - len(self.active_vertices))
-        Ndelta, self.N = self.N - N_new, N_new
-        self.progressbar.update(Ndelta)
+        self._find_segments()
+        self.N -= len(self.active_vertices)
+        # Ndelta, self.N = self.N - N_new, N_new
+        self.progressbar.update(self.dN)
 
 
     def one_frame(self):
         L = len(self.segments)
         for m in range(self.M):
-            N_new = self.step(self.N)
-        Ndelta, self.N = self.N - N_new, N_new
-        self.progressbar.update(Ndelta)
+            self.step()
+        # Ndelta, self.N = self.N - N_new, N_new
+        # self.progressbar.update()
         if L != len(self.segments):
             self.animation_vertices.append(np.array(self.active_vertices))
             self.animation_segments_index.append(len(self.segments))
 
 
     def fin(self):
-        N_new = self._find_segments(self.N)
-        Ndelta, self.N = self.N - N_new, N_new
-        self.progressbar.update(Ndelta)
+        self._find_segments()
+        # Ndelta, self.N = self.N - N_new, N_new
+        # self.progressbar.update(Ndelta)
         self.animation_vertices.append(np.array(self.active_vertices))
         self.animation_segments_index.append(len(self.segments))
         self.animation_segments = np.array(self.segments)
@@ -55,20 +56,20 @@ class Simulation:
         else:
             return self.animation_segments, self.animation_segments_index, self.animation_vertices
 
-    def step(self, N):
+    def step(self):
         for i in range(len(self.active_segments)-1, -1, -1):
             recalibrate, shuffleB, modified_vertices, i = self._segment_adding(i)
             if shuffleB or recalibrate:
                 tree = ckdtree.cKDTree(self.segments)
                 if recalibrate:
-                    N = self._find_segments_additive(tree, modified_vertices, N)
+                    self._find_segments_additive(tree, modified_vertices)
                     recalibrate = False
                     break
                 if shuffleB:
                     self._shuffle(tree, i)
                     shuffleB = False
                     break
-        return N
+        # return N
 
 
     def reset(self, N=100, dN=1, M=5, l=1, d=2e-3, epsilon=2e-7, random_fun='homo square', test=False, initial_vertices=None, initial_segments=None):
@@ -98,7 +99,6 @@ class Simulation:
         return [(0,0)], [], [], []
 
     def _random_vertex(self):
-        print(self.N)
         if self.random_fun == 'homo circle':
             r = np.random.random()*self.l
             phi = np.random.random()*2*np.pi
@@ -108,7 +108,7 @@ class Simulation:
         else:
             return np.random.random(size=2)*2*self.l-self.l
 
-    def _find_segments(self,N):
+    def _find_segments(self):
         self.active_segments = [] #segmenty które będą się rozrastać
         self.segments_vertices = [] #krawędzie do których będzie rozrastać się segment na odpowiednim miejscu powyżej
         tree = ckdtree.cKDTree(self.segments)
@@ -117,14 +117,15 @@ class Simulation:
             if dist < self.d:
                 if not any(i in lista for lista in self.segments_vertices):
                     self.active_vertices.pop(i)
-                    if N != 0:
+                    if self.N != 0:
                         new_vertex = self._random_vertex()
                         self.active_vertices.append(new_vertex)
-                        N -= 1
+                        self.N -= 1
+                        self.progressbar.update(1)
 
         for i in range(len(self.active_vertices)):
             self._find_segment(i, tree)
-        return N
+        # return N
 
     def _find_segment(self, i, tree):
         dist, nearest_segment = tree.query(self.active_vertices[i])
@@ -233,16 +234,17 @@ class Simulation:
             self.active_segments.pop(i)
             self.segments_vertices.pop(i)
 
-    def _find_segments_additive(self, tree, modified_vertices, N):
+    def _find_segments_additive(self, tree, modified_vertices):
         for i in range(len(modified_vertices)-1,-1,-1): #bierzemy teraz modyfikowane wierzchołki
             dist, nearest_segment = tree.query(self.active_vertices[modified_vertices[i]])
             if dist < self.d:
                 deleted = modified_vertices[i]
                 if not any(deleted in lista for lista in self.segments_vertices): #sprawdzamy czy wszystkie segmenty dotarły do danego wierzchołka
-                    if N != 0:
+                    if self.N != 0:
                         new_vertex = self._random_vertex()
                         self.active_vertices[deleted] = new_vertex
-                        N -= 1
+                        self.N -= 1
+                        self.progressbar.update(1)
                     else:
                         modified_vertices.pop(i)
                         self.active_vertices.pop(deleted)
@@ -254,7 +256,7 @@ class Simulation:
 
         for i in modified_vertices:
             self._find_segment(i, tree)
-        return N
+        # return N
 
     def _decrement(self, vertices, deleted):
         for i in range(len(vertices)):
