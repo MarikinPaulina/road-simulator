@@ -1,18 +1,121 @@
-import tqdm.autonotebook
+import os
+import numba
+import numba.typed
 import numpy as np
+from tqdm.autonotebook import tqdm
 from scipy.spatial import ckdtree
 from segcheck import segments_check
-import numba.typed, numba
 
-def random_vertex(l, shapeAndDistribution):
-    if shapeAndDistribution == 'homo square':
-        return np.random.random(2)*2*l-l
-    elif shapeAndDistribution == 'homo circle':
-        r = np.random.random()
-        phi = np.random.random()*2*np.pi
+
+def RPwC(l, a, alpha, lam=0.009):
+    L = 2**a
+    r = _r(L)
+    s_k = _s_k(r, alpha)
+
+    eta = _eta(s_k)
+    theta = _theta(eta, r, lam)
+
+    points = _points(theta, eta, L, l)
+    return points
+
+
+def _r(L):
+    x = np.arange(-L // 2, L // 2)
+    y = np.arange(-L // 2, L // 2)
+    X, Y = np.meshgrid(x, y)
+    r = np.sqrt(X ** 2 + Y ** 2)
+    return r
+
+
+def _C(r, a):
+    return (1+r**2)**(-a/2)
+
+
+@numba.njit
+def _P(r, lam):
+    return np.e**(-lam*r)
+
+
+def _s_k(r, alpha):
+    c_r = _C(r, alpha)
+    s_k = np.fft.fft2(c_r)
+    s_k = s_k.real
+    s_k[s_k < 0] = 0
+    return s_k
+
+
+def _eta(s_k):
+    U_r = np.random.normal(scale=np.sqrt(s_k.size), size=s_k.shape)
+    U_q = np.fft.fft2(U_r)
+    phi = np.fft.ifft2(np.sqrt(s_k) * U_q)
+    eta = phi.real
+    return eta
+
+
+@numba.njit
+def _theta(eta, r, lam):
+    hist, bins = np.histogram(eta.ravel(), eta.size);
+    bins = (bins[1:] + bins[:-1]) / 2
+    hist = np.cumsum(hist) / np.sum(hist)
+    p = _P(r, lam)
+    theta = np.zeros(p.shape)
+    for i in range(len(theta)):
+        for j in range(len(theta[i])):
+            theta[i, j] = bins[np.argmin(np.abs(hist - p[i, j]))]
+    return theta
+
+
+def _points(theta, eta, L, l):
+    points = theta > eta
+    x = np.arange(-L // 2, L // 2)
+    y = np.arange(-L // 2, L // 2)
+    X, Y = np.meshgrid(x, y)
+    array = np.array((X[points], Y[points]))
+    array = array / L * l * 2
+    np.random.shuffle(array.T)
+    return array
+
+
+def save_data(folder, fname, **kwargs):
+    os.makedirs(folder, exist_ok=True)
+    for name, data in kwargs.items():
+        path = f'{folder}/{fname}_{name}.npy'
+        np.save(path, data)
+
+
+def save_sim(folder, fname, sim_tuple):
+    save_data(folder, fname, animation_segments=sim_tuple[0],
+              animation_index=sim_tuple[1], animation_vertices=sim_tuple[2])
+
+
+def load_data(*args):
+    data = []
+    for path in args:
+        data.append(np.load(path, allow_pickle=True))
+    return data
+
+
+def load_sim(path):
+    data = {}
+    for name in ('animation_segments', 'animation_index', 'animation_vertices'):
+        fname = f'{path}_{name}.npy'
+        data[name] = load_data(fname)
+    return data
+
+
+def random_vertex(l, shapeAndDistribution, N=1):
+    # if shapeAndDistribution == 'pow':
+    #     r = np.random.power(0.5,size=N)*self.l
+    #     phi = np.random.random(size=N)*2*np.pi
+    #     return np.array([r*np.cos(phi),r*np.sin(phi)])
+    if shapeAndDistribution == 'uni square':
+        return np.random.random(size=(N,2))*2*l-l
+    elif shapeAndDistribution == 'uni circle':
+        r = np.random.random(size=N)
+        phi = np.random.random(size=N)*2*np.pi
         return np.array([r*np.cos(phi),r*np.sin(phi)])
     elif shapeAndDistribution == 'normal':
-        return np.random.normal(0,l,size=2)
+        return np.random.normal(0,l,size=(N,2))
 
 
 

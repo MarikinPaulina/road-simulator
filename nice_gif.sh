@@ -4,6 +4,7 @@
 # Use:
 # 1) create video and gif from series of pictures. Use arguments: $1 - name for pictures with zeroes padding (e.g. name%04d);
 # $2 - name of output mp4 video; $3 - name for output gif
+
 palette="/tmp/palette.png"
 
 filters="fps=10,scale=1024:-1:flags=lanczos"
