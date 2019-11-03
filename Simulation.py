@@ -7,21 +7,8 @@ from scipy.spatial import ckdtree
 from segcheck import segments_check
 
 
-def RPwC(l, a, alpha, lam=0.009):
-    L = 2**a
-    r = _r(L)
-    s_k = _s_k(r, alpha)
-
-    eta = _eta(s_k)
-    theta = _theta(eta, r, lam)
-
-    points = _points(theta, eta, L, l)
-    return points
-
-
 def _r(L):
-    x = np.arange(-L // 2, L // 2)
-    y = np.arange(-L // 2, L // 2)
+    x = y = np.arange(-L // 2, L // 2)
     X, Y = np.meshgrid(x, y)
     r = np.sqrt(X ** 2 + Y ** 2)
     return r
@@ -29,11 +16,6 @@ def _r(L):
 
 def _C(r, a):
     return (1+r**2)**(-a/2)
-
-
-@numba.njit
-def _P(r, lam):
-    return np.e**(-lam*r)
 
 
 def _s_k(r, alpha):
@@ -44,6 +26,7 @@ def _s_k(r, alpha):
     return s_k
 
 
+
 def _eta(s_k):
     U_r = np.random.normal(scale=np.sqrt(s_k.size), size=s_k.shape)
     U_q = np.fft.fft2(U_r)
@@ -52,15 +35,16 @@ def _eta(s_k):
     return eta
 
 
-@numba.njit
+@numba.njit(parallel=True)
 def _theta(eta, r, lam):
-    hist, bins = np.histogram(eta.ravel(), eta.size);
+    hist, bins = np.histogram(eta.ravel(), eta.size)
     bins = (bins[1:] + bins[:-1]) / 2
     hist = np.cumsum(hist) / np.sum(hist)
-    p = _P(r, lam)
-    theta = np.zeros(p.shape)
-    for i in range(len(theta)):
-        for j in range(len(theta[i])):
+    p = np.exp(-lam*r)
+    N, M = p.shape
+    theta = np.zeros_like(p)
+    for i in numba.prange(N):
+        for j in range(M):
             theta[i, j] = bins[np.argmin(np.abs(hist - p[i, j]))]
     return theta
 
@@ -74,6 +58,37 @@ def _points(theta, eta, L, l):
     array = array / L * l * 2
     np.random.shuffle(array.T)
     return array
+
+
+def RPwC(l, a, alpha, lam=0.009):
+    """
+    Random Points with Correlations
+
+    Parameters
+    ----------
+    l
+    a
+    alpha
+    lam
+
+    Returns
+    -------
+
+    """
+    L = 2**a
+    r = _r(L)
+    s_k = _s_k(r, alpha)
+
+    eta = _eta(s_k)
+    theta = _theta(eta, r, lam)
+
+    points = _points(theta, eta, L, l)
+    return points
+
+if __name__ == '__main__':
+    l = 1
+    np.random.seed(9)
+    RPwC(l, 9, 1, 0.009)
 
 
 def save_data(folder, fname, **kwargs):

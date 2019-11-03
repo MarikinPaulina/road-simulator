@@ -8,15 +8,14 @@ import numba
 
 class Simulation:
 
-    def __init__(self, N=100, dN=1, M=5, l=1, d=2e-3, epsilon=2e-7,
-                 vertices=None, random_fun=None, test=False, initial_segments=None):
+    def __init__(self, N=100, dN=1, M=5, l=1, d=2e-3, vertices=None, random_fun=None, test=False,
+                 initial_segments=None):
         self.N = N
         self.dN = dN
         self.M = M
 
         self.l = l
         self.d = d
-        self.epsilon = epsilon
 
         self.vertices = vertices
 

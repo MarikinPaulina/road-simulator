@@ -8,7 +8,6 @@ M = 10
 dN = 6
 l = 1
 d = l*2e-3
-epsilon = d*1e-4
 np.random.seed(2**32-701)
 
 folder_anim = 'wyniki_z_listopada/-700/04/anim'
@@ -16,7 +15,7 @@ name = 'new_cor'
 folder_data = 'wyniki_z_listopada/-700/04/data'
 
 array = RPwC(l, 9, 0.4, 0.009)
-sim = Simulation(N, dN, M, l, d, epsilon, vertices=array.T)
+sim = Simulation(N, dN, M, l, d, vertices=array.T)
 animation_segments, animation_index, animation_vertices = sim.run()
 
 save_sim(folder_data, name, (animation_segments, animation_index, animation_vertices))
