@@ -1,5 +1,5 @@
 import numpy as np
-from Simulation import run
+from tymczasowa_nazwa.Simulation import run
 
 
 def test_straight():

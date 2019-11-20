@@ -1,6 +1,6 @@
 import numpy as np
-from Simulation import RPwC
-from Class_rewrite import Simulation
+from tymczasowa_nazwa.Simulation import RPwC
+from tymczasowa_nazwa.Class_rewrite import Simulation
 
 
 # @pytest.mark.xfail

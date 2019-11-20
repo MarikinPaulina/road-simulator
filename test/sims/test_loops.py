@@ -1,4 +1,4 @@
-from Simulation import run
+from tymczasowa_nazwa.Simulation import run
 import numpy as np
 
 

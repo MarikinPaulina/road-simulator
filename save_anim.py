@@ -1,7 +1,7 @@
-from Visual import save_pic, save_pics
-from Simulation import RPwC, save_sim
+from tymczasowa_nazwa.Visual import save_pic, save_pics
+from tymczasowa_nazwa.Simulation import RPwC, save_sim
 import numpy as np
-from Class_rewrite import Simulation
+from tymczasowa_nazwa.Class_rewrite import Simulation
 
 N = 10000
 M = 10
