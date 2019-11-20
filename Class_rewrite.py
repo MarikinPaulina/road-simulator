@@ -156,8 +156,8 @@ class Simulation:
                 self.active_segments[i] = len(self.segments)-1
                 return False, False, None, i
 
-        recalibrate, shuffleB, modified_vertices, i = self._recalibration(i, r_list)
-        return recalibrate, shuffleB, modified_vertices, i
+        recalibrate, modified_vertices, i = self._recalibration(i, r_list)
+        return recalibrate, True, modified_vertices, i
 
     def _compute_dist(self, i):
         dist_x = 0
@@ -179,7 +179,6 @@ class Simulation:
         closest_id = np.argmin(r_list)
         vertex = self.segments_vertices[i].pop(closest_id)
         modified_vertices = [vertex]
-        shuffleB = True
         if len(self.segments_vertices[i]) == 0:
             self.segments_vertices.pop(i)
             self.active_segments.pop(i)
@@ -196,9 +195,8 @@ class Simulation:
             self.segments.append(new_seg)
             self.active_segments.append(len(self.segments)-1)
             self.segments_vertices.append([vertex])
-            shuffleB = True
         recalibrate = not any(vertex in lista for lista in self.segments_vertices)
-        return recalibrate, shuffleB, modified_vertices, i
+        return recalibrate, modified_vertices, i
 
     def _shuffle(self, tree, i):
         if i == -1 or len(self.segments) < 2:

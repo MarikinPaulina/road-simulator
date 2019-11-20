@@ -25,8 +25,9 @@ def test_classDiagonal():
 def test_random_mini():
     l = 1; d = l*2e-3
     N = 10; M = 10; dN = 6
-    vertices = RPwC(l, N, 0.4)
-    sim = Simulation(N, dN, M, l, d, vertices=vertices, test=True)
+    np.random.seed(4)
+    vertices = RPwC(l, 4, 0.4)
+    sim = Simulation(N, dN, M, l, d, vertices=vertices.T, test=True)
     output = sim.run()
     assert len(output["active_vertices"]) == 0
-    assert len(output["animation_vertices"]) == 98
+    assert len(output["animation_vertices"]) == 82

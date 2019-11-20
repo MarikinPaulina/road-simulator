@@ -145,7 +145,7 @@ def run(N,M,Frames,l,d,epsilon, number_of_vertices = 1, shapeAndDistribution=Non
     else:
         active_vertices = initial_vertices
 
-    with tqdm.autonotebook.tqdm(total=N) as progressbar:
+    with tqdm(total=N) as progressbar:
         N_new = N - len(active_vertices)
         active_segments, segments_vertices, N_new = find_segments(active_vertices, segments,d,epsilon,l, N_new,shapeAndDistribution)
         Ndelta, N = N - N_new, N_new

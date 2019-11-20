@@ -102,7 +102,7 @@ def animated_frames(animation_segments, animation_index, animation_vertices):
         if frame_vertices.size > 0:
             ax.scatter(frame_vertices[:, 0], frame_vertices[:, 1])
         # TODO optimize the line below - done?
-        ax.scatter(frame_segments[0], frame_segments[1], 0.05, 'k')
+        ax.scatter(frame_segments[0], frame_segments[1], 0.005, 'k')
 
         #         [ax.plot(segment[:, 0], segment[:, 1]) for segment in frame_segments]
         ax.axis('equal')

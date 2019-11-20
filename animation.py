@@ -6,16 +6,16 @@ from Class_rewrite import Simulation
 
 # @profile
 def main():
-    N = 5000
+    N = 500
     M = 10
     dN = 6
     l = 1
     d = l*2e-3
     np.random.seed(700)
 
-    folder_anim = 'wyniki_z_listopada/s700_Big/5k_ncor/anim'
-    name = '5k_ncor'
-    folder_data = 'wyniki_z_listopada/s700_Big/5k_ncor/data'
+    folder_anim = 'test'
+    name = 'przed'
+    folder_data = 'test'
 
     array = RPwC(l, 9, 2., 0.009)
     sim = Simulation(N, dN, M, l, d, vertices=array.T)
