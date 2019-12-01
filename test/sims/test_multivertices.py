@@ -1,4 +1,4 @@
-from tymczasowa_nazwa.Simulation import run
+from urban_street_simulation.Simulation import run
 import numpy as np
 
 

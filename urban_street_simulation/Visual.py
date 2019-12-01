@@ -21,7 +21,7 @@ def save_pic(tuple_of_arguments):
     ax.axis('equal')
     if title is not None:
         ax.set_title(title)
-    ax.scatter(segments.T[0], segments.T[1], 4, 'k')
+    ax.scatter(segments.T[0], segments.T[1], 0.5, 'k')
     if vertices.size > 0:
         ax.scatter(vertices[:, 0], vertices[:, 1], s=200)
     ax.spines["top"].set_visible(False)
@@ -102,7 +102,7 @@ def animated_frames(animation_segments, animation_index, animation_vertices):
         if frame_vertices.size > 0:
             ax.scatter(frame_vertices[:, 0], frame_vertices[:, 1])
         # TODO optimize the line below - done?
-        ax.scatter(frame_segments[0], frame_segments[1], 0.005, 'k')
+        ax.scatter(frame_segments[0], frame_segments[1], 0.5, 'k')
 
         #         [ax.plot(segment[:, 0], segment[:, 1]) for segment in frame_segments]
         ax.axis('equal')

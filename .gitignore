@@ -7,4 +7,10 @@ __pycache__/
 results*
 animations
 .idea
-.npy
+*.npy
+praca_dyplomowa/
+*.egg-info
+*.lprof
+SHAPEEEEEEEEEEEEEEEEEEEEEEES.ipynb
+wyniki/
+seminarium

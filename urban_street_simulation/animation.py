@@ -1,23 +1,23 @@
-from tymczasowa_nazwa.Visual import save_pic, save_pics
-from tymczasowa_nazwa.Simulation import RPwC, save_sim
+from urban_street_simulation.Visual import save_pic, save_pics
+from urban_street_simulation.Simulation import RPwC, save_sim
 import numpy as np
-from tymczasowa_nazwa.Class_rewrite import Simulation
+from urban_street_simulation.Class_rewrite import Simulation
 
 
 # @profile
 def main():
-    N = 500
+    N = 100
     M = 10
     dN = 6
     l = 1
     d = l*2e-3
     np.random.seed(700)
 
-    folder_anim = 'test'
-    name = 'przed'
-    folder_data = 'test'
+    folder_anim = 'wyniki/wyniki_z_grudnia/stack/anim'
+    name = 'maly'
+    folder_data = 'wyniki/wyniki_z_grudnia/stack'
 
-    array = RPwC(l, 9, 2., 0.009)
+    array = RPwC(l, 7, 0.5, 0.009)
     sim = Simulation(N, dN, M, l, d, vertices=array.T)
     animation_segments, animation_index, animation_vertices = sim.run()
 

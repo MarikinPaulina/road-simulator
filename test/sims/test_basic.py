@@ -1,5 +1,5 @@
 import numpy as np
-from tymczasowa_nazwa.Simulation import run
+from urban_street_simulation.Simulation import run
 
 
 def test_straight():

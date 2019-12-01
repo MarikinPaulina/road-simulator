@@ -1,7 +1,7 @@
 import tqdm.autonotebook
 import numpy as np
 from scipy.spatial import ckdtree
-from segcheck import segments_check
+from urban_street_simulation.segcheck import segments_check
 import numba.typed
 import numba
 

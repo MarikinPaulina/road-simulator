@@ -2,6 +2,6 @@ from setuptools import setup
 
 setup(
     name='Inzynierka',
-    packages=['tymczasowa_nazwa'],
+    packages=['urban_street_simulation'],
     author='paulina',
 )

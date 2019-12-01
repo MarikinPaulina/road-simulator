@@ -1,5 +1,5 @@
 import numpy as np
-from tymczasowa_nazwa.Class_rewrite import Simulation
+from urban_street_simulation.Class_rewrite import Simulation
 
 
 def test_classTwoToPlay():

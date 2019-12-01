@@ -1,7 +1,7 @@
-from tymczasowa_nazwa.Visual import save_pic, save_pics
-from tymczasowa_nazwa.Simulation import RPwC, save_sim
+from urban_street_simulation.Visual import save_pic, save_pics
+from urban_street_simulation.Simulation import RPwC, save_sim
 import numpy as np
-from tymczasowa_nazwa.Class_rewrite import Simulation
+from urban_street_simulation.Class_rewrite import Simulation
 
 N = 10000
 M = 10

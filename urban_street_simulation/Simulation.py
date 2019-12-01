@@ -4,7 +4,7 @@ import numba.typed
 import numpy as np
 from tqdm.autonotebook import tqdm
 from scipy.spatial import ckdtree
-from segcheck import segments_check
+from urban_street_simulation.segcheck import segments_check
 
 
 def _r(L):
