@@ -1,7 +1,7 @@
 from tqdm.autonotebook import tqdm
 import numpy as np
 from scipy.spatial import ckdtree
-import shapely.geometry
+import shapely
 
 
 def make_polygons(segments, d):
@@ -9,6 +9,11 @@ def make_polygons(segments, d):
     polygon = mp.buffer(d)
     polygons = [shapely.geometry.Polygon(i) for i in polygon.interiors]
     return polygons
+
+
+def parse_vertices(vertices):
+    vertices = np.unique(np.array(flat_list(vertices)), axis=0)
+    return vertices
 
 
 def flat_list(lista):
