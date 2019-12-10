@@ -26,7 +26,6 @@ def _s_k(r, alpha):
     return s_k
 
 
-
 def _eta(s_k):
     U_r = np.random.normal(scale=np.sqrt(s_k.size), size=s_k.shape)
     U_q = np.fft.fft2(U_r)
@@ -85,11 +84,6 @@ def RPwC(l, a, alpha, lam=0.009):
     points = _points(theta, eta, L, l)
     return points
 
-if __name__ == '__main__':
-    l = 1
-    np.random.seed(9)
-    RPwC(l, 9, 1, 0.009)
-
 
 def save_data(folder, fname, **kwargs):
     os.makedirs(folder, exist_ok=True)
@@ -119,13 +113,9 @@ def load_sim(path):
 
 
 def random_vertex(l, shapeAndDistribution, N=1):
-    # if shapeAndDistribution == 'pow':
-    #     r = np.random.power(0.5,size=N)*self.l
-    #     phi = np.random.random(size=N)*2*np.pi
-    #     return np.array([r*np.cos(phi),r*np.sin(phi)])
-    if shapeAndDistribution == 'uni square':
+    if shapeAndDistribution == 'uni_square':
         return np.random.random(size=(N,2))*2*l-l
-    elif shapeAndDistribution == 'uni circle':
+    elif shapeAndDistribution == 'uni_circle':
         r = np.random.random(size=N)
         phi = np.random.random(size=N)*2*np.pi
         return np.array([r*np.cos(phi),r*np.sin(phi)])
