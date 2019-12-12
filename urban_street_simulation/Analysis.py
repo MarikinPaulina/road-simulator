@@ -30,8 +30,8 @@ def flat_list(lista):
     return out
 
 
-def avrage_segments(path, name):
-    regex = fr'.*{name}.*'
+def average_segments(path, name):
+    regex = fr'*.{name}*.'
     all_files = [file for file in os.listdir(path) if os.path.is_file(file)]
     data_files = [path / file for file in all_files if re.match(regex, file)]
     num_datesets = len(data_files)
@@ -39,3 +39,4 @@ def avrage_segments(path, name):
     for file in data_files:
         segments = load_data(file)[0]
         num_segments += len(segments)
+    return num_segments/num_datesets

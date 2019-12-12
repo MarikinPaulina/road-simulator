@@ -21,7 +21,11 @@ class Simulation:
 
         self.test = test
 
-        self.segments, self.active_vertices, self.animation_vertices, self.animation_segments_index = self._reset()
+        self.segments, \
+        self.active_vertices, \
+        self.animation_vertices, \
+        self.animation_segments_index, \
+        self.lines = self._reset()
 
         if not (initial_segments is None):
             self.segments = initial_segments
@@ -65,10 +69,11 @@ class Simulation:
                 "animation_segments": np.array(self.segments),
                 "animation_vertices": self.animation_vertices,
                 "animation_segments_index": self.animation_segments_index,
-                "segments": self.segments}
+                "segments": self.segments,
+                "lines": self.lines}
             return return_pack
         else:
-            return np.array(self.segments), self.animation_segments_index, self.animation_vertices
+            return np.array(self.segments), self.animation_segments_index, self.animation_vertices, self.lines
 
     def step(self):
         for i in range(len(self.active_segments)-1, -1, -1):
@@ -84,7 +89,7 @@ class Simulation:
 
     @staticmethod
     def _reset():
-        return [(0, 0)], [], [], []
+        return [(0, 0)], [], [], [], []
 
     def _random_vertex(self):
         if self.random_fun == 'pow':
@@ -153,6 +158,7 @@ class Simulation:
                     break
             else:
                 self.segments.append(new_seg)
+                self.lines.append([self.segments[self.active_segments[i]], new_seg])
                 self.active_segments[i] = len(self.segments)-1
                 return False, False, None, i
 
@@ -193,6 +199,7 @@ class Simulation:
             else:
                 new_seg = (self.active_vertices[vertex][0], self.active_vertices[vertex][1])
             self.segments.append(new_seg)
+            self.lines.append([self.segments[self.active_segments[i]], new_seg])
             self.active_segments.append(len(self.segments)-1)
             self.segments_vertices.append([vertex])
         recalibrate = not any(vertex in lista for lista in self.segments_vertices)
