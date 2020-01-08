@@ -92,9 +92,8 @@ def save_data(folder, fname, **kwargs):
         np.save(path, data)
 
 
-def save_sim(folder, fname, sim_tuple):
-    save_data(folder, fname, animation_segments=sim_tuple[0],
-              animation_index=sim_tuple[1], animation_vertices=sim_tuple[2])
+def save_sim(folder, fname, sim_dict):
+    save_data(folder, fname, **sim_dict)
 
 
 def load_data(*args):
