@@ -16,4 +16,5 @@ dependencies:
  - ipympl
  - pytest
  - pip
+ - shapely
  - line_profiler

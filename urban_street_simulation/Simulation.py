@@ -43,6 +43,7 @@ def _theta(eta, r, lam):
     N, M = p.shape
     theta = np.zeros_like(p)
     for i in numba.prange(N):
+    # for i in range(N):
         for j in range(M):
             theta[i, j] = bins[np.argmin(np.abs(hist - p[i, j]))]
     return theta

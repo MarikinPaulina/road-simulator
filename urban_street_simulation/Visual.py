@@ -1,7 +1,7 @@
 import ipywidgets
 from ipywidgets import interact, IntSlider
 from IPython.display import display
-import tqdm.autonotebook as tqdm
+import tqdm.auto as tqdm
 import matplotlib.pyplot as plt
 import os
 from tqdm.auto import tqdm as tqdm

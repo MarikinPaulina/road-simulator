@@ -185,23 +185,26 @@ class Simulation:
         closest_id = np.argmin(r_list)
         vertex = self.segments_vertices[i].pop(closest_id)
         modified_vertices = [vertex]
+
+        # else:
+        x = self.active_vertices[vertex][0] - self.segments[self.active_segments[i]][0]
+        y = self.active_vertices[vertex][1] - self.segments[self.active_segments[i]][1]
+        r = r_list[closest_id]
+        if r >= self.d:
+            new_seg = (self.segments[self.active_segments[i]][0]+x*self.d/r,
+                       self.segments[self.active_segments[i]][1]+y*self.d/r)
+        else:
+            new_seg = (self.active_vertices[vertex][0], self.active_vertices[vertex][1])
+        self.segments.append(new_seg)
+        self.lines.append([self.segments[self.active_segments[i]], new_seg])
         if len(self.segments_vertices[i]) == 0:
             self.segments_vertices.pop(i)
             self.active_segments.pop(i)
             i = -1
         else:
-            x = self.active_vertices[vertex][0] - self.segments[self.active_segments[i]][0]
-            y = self.active_vertices[vertex][1] - self.segments[self.active_segments[i]][1]
-            r = r_list[closest_id]
-            if r >= self.d:
-                new_seg = (self.segments[self.active_segments[i]][0]+x*self.d/r,
-                           self.segments[self.active_segments[i]][1]+y*self.d/r)
-            else:
-                new_seg = (self.active_vertices[vertex][0], self.active_vertices[vertex][1])
-            self.segments.append(new_seg)
-            self.lines.append([self.segments[self.active_segments[i]], new_seg])
             self.active_segments.append(len(self.segments)-1)
             self.segments_vertices.append([vertex])
+
         recalibrate = not any(vertex in lista for lista in self.segments_vertices)
         return recalibrate, modified_vertices, i
 

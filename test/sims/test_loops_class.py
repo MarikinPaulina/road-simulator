@@ -10,7 +10,7 @@ def test_classLackOfLoopsCentered():
     sim = Simulation(N, dN, M, l, d, vertices=vertices, test=True, initial_segments=segments)
     output = sim.run()
     assert len(output["active_vertices"]) == 0
-    assert len(output["segments"]) == 504
+    assert len(output["segments"]) == 505
 
 
 def test_classLackOfLoopsSided():
@@ -21,7 +21,7 @@ def test_classLackOfLoopsSided():
     sim = Simulation(N, dN, M, l, d, vertices=vertices, test=True, initial_segments=segments)
     output = sim.run()
     assert len(output["active_vertices"]) == 0
-    assert len(output["segments"]) == 504
+    assert len(output["segments"]) == 505
 
 
 def test_classTwoEnds():
@@ -32,7 +32,7 @@ def test_classTwoEnds():
     sim = Simulation(N, dN, M, l, d, vertices=vertices, test=True, initial_segments=segments)
     output = sim.run()
     assert len(output["active_vertices"]) == 0
-    assert len(output["segments"]) == 500
+    assert len(output["segments"]) == 502
 
 
 def test_classGCross():
@@ -43,7 +43,7 @@ def test_classGCross():
     sim = Simulation(N, dN, M, l, d, vertices=vertices, test=True, initial_segments=segments)
     output = sim.run()
     assert len(output["active_vertices"]) == 0
-    assert len(output["segments"]) == 1000
+    assert len(output["segments"]) == 1004
 
 
 def test_classAsymetricLoop():
@@ -54,7 +54,7 @@ def test_classAsymetricLoop():
     sim = Simulation(N, dN, M, l, d, vertices=vertices, test=True, initial_segments=segments)
     output = sim.run()
     assert len(output["active_vertices"]) == 0
-    assert len(output["segments"]) == 375
+    assert len(output["segments"]) == 377
 
 
 def test_classBastardVertex():
