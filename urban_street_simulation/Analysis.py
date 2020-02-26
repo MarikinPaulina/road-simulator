@@ -1,13 +1,15 @@
 from tqdm.auto import tqdm
 import numpy as np
 from scipy.spatial import ckdtree
-import shapely
+# import shapely
+import shapely.geometry
 from smallestenclosingcircle import make_circle
 from pathlib import Path
 import os
 from urban_street_simulation.Simulation import load_data
 import networkx as nx
 import json
+
 
 def make_polygons(lines, vertices):
     """
@@ -88,19 +90,35 @@ def reduce_edges(graph, new_graph, vertex, unique_vertices):
     neighbors = list(graph.neighbors(vertex))
     for i in range(len(neighbors)):
         neighbour = neighbors[i]
-        if neighbour not in unique_vertices:
-            graph.remove_edge(vertex, neighbour)
-            while neighbour not in unique_vertices:
-                if len(list(graph.neighbors(neighbour))) != 1:
-                    print(list(graph.neighbors(neighbour)))
-                    raise IndexError
-                new_neighbour = list(graph.neighbors(neighbour))[0]
-                graph.remove_node(neighbour)
-                neighbour = new_neighbour
+        old_neighbour = vertex
+        while neighbour not in unique_vertices:
+            if len(list(graph.neighbors(neighbour))) != 2:
+                print(list(graph.neighbors(neighbour)))
+                raise IndexError
+            new_neighbours = list(graph.neighbors(neighbour))
+            new_neighbour = new_neighbours[0] if new_neighbours[0] != old_neighbour else new_neighbours[1]
+            if not is_collinear(np.array(old_neighbour), np.array(neighbour), np.array(new_neighbour), 5e-7):
+                unique_vertices.append(neighbour)
+            else:
+                neighbour, old_neighbour = new_neighbour, neighbour
         new_graph.add_edge(vertex, neighbour)
 
 
+def is_collinear(p1, p2, p3, diff=1e-8):
+    v1 = p1 - p2
+    v2 = p1 - p3
+    return np.isclose(v1[0]*v2[1], v1[1]*v2[0], 0, diff)
+
+
 def save_polygons(polygons, name):
+    """
+    Save defining points of shapely polygons to json file with given name
+    Parameters
+    ----------
+    polygons : list
+    name : str
+
+    """
     poly_list = [np.array(poly.boundary).tolist() for poly in polygons]
     with open(name, 'w') as file:
         json.dump(poly_list, file)
