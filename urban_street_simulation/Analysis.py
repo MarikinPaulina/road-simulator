@@ -1,7 +1,6 @@
 from tqdm.auto import tqdm
 import numpy as np
 from scipy.spatial import ckdtree
-# import shapely
 import shapely.geometry
 from smallestenclosingcircle import make_circle
 from pathlib import Path
@@ -9,6 +8,7 @@ import os
 from urban_street_simulation.Simulation import load_data
 import networkx as nx
 import json
+import re
 
 
 def make_polygons(lines, vertices):
@@ -125,42 +125,179 @@ def save_polygons(polygons, name):
 
 
 def load_polygons(name):
+    """
+    Loads defining points of shapely polygons from json file with given name
+    and converts them to list of polygons
+    Parameters
+    ----------
+    name : str
+
+    Returns
+    -------
+    polygons : list
+    """
     with open(name, 'r') as file:
         poly_list = json.load(file)
     polygons = [shapely.geometry.Polygon(i) for i in poly_list]
     return polygons
 
 
-def areas_hist(polygons, **kwargs):
-    areas = np.array([poly.area for poly in polygons])
-    return np.histogram(areas, **kwargs)
+def roads_vs_centers(path, d=2e-3):
+
+    """
+    Calculates average length of roads for simulation with given number of centers.
+    returns two lists: numbers of centers and corresponding average roads length.
+    Parameters
+    ----------
+    path: Path
+
+    Returns
+    -------
+    N : list
+        final number of centers for sets of simulations
+    L : list
+        list of average length of roads for corresponding set of simulation.
+    sigma : list
+        list of std
+
+    """
+    L = []
+    N = []
+    sigma = []
+    for fol in path.iterdir():
+        # Ilosc centrów
+        N.append(int(re.search('\d+', str(fol).split('/')[-1]).group(0)))
+        # liczymy srednią
+        l_tab = []
+        for file in (fol / 'data').iterdir():
+            if re.search('_lines', str(file)):
+                l_tab.append(np.load(file).shape[0] * d)
+        i = len(l_tab)
+        L_sum = sum(l_tab) / i
+        L2_sum = sum([x**2 for x in l_tab]) / i
+        L.append(L_sum)
+        sigma.append((L2_sum-L_sum**2)**0.5)
+    return N, L, sigma
 
 
-def perimeters_hist(polygons, **kwargs):
-    perimeters = [poly.length for poly in polygons]
-    return np.histogram(perimeters, **kwargs)
+def fi_hist(polygons=None, bins=50, path=None, **kwargs):
+    """
+    Calculates fi factor (the ratio of the area of the polygon to the area of the circumscribed circle)
+    for all given polygons and creates its histogram
+    Parameters
+    ----------
+    polygons : list
+    bins : int
+    path : Path
+
+    Returns
+    -------
+
+    """
+    polygons = maybe_load_polygons(polygons, path)
+    fi = [fi_factor(polygon) for polygon in polygons]
+
+    hist = np.histogram(fi, bins, density=True, **kwargs)
+    bins = ((hist[1][:-1] + hist[1][1:]) / 2).tolist()
+    hist = (hist[0]).tolist()
+
+    return bins, hist
 
 
-def circles_hist(polygons, **kwargs):
-    areas = np.array([poly.area for poly in polygons])
-    circles = make_circles(polygons)
-    centers = [shapely.geometry.Point((o[0], o[1])) for o in circles]
-    circles_areas = [center.buffer(o[2]) for center, o in zip(centers, circles)]
-    return np.histogram(areas/circles_areas, **kwargs)
+def maybe_load_polygons(polygons, path):
+    if not polygons:
+        if path:
+            polygons = []
+            i = 0
+            for file in path.iterdir():
+                if re.search('_polygons', str(file)):
+                    polygons.extend(load_polygons(file))
+                    i += 1
+        else:
+            raise TypeError
+    return polygons
 
 
-def parse_vertices(vertices):
-    vertices = set(flat_list(vertices))
-    return vertices
+def fi_factor(polygon):
+    """
+    Calculates fi factor (the ratio of the area of the polygon to the area of the circumscribed circle)
+    Parameters
+    ----------
+    polygon : shapely.geometry.Polygon
+
+    Returns
+    -------
+    fi : float [0,1]
+    """
+    circle_points = make_circle(np.array(polygon.boundary.xy).T)
+    center = shapely.geometry.Point((circle_points[0], circle_points[1]))
+    circle = center.buffer(circle_points[2])
+    fi = polygon.area / circle.area
+    return fi
+
+
+def perimeter_hist(N, polygons=None, bins=50, path=None, **kwargs):
+    """
+    Calculates perimeters of all given polygons and creates modified histogram by:
+    - multiplying bins values by final number of centers (N)
+    - converting perimeters to they probability, dividing that by square root of N and taking logarithm from it all
+    Parameters
+    ----------
+    N : int
+        Number of centers in given simulation
+    polygons : list
+    bins : int
+    path : Path
+    kwargs
+
+    Returns
+    -------
+
+    """
+    polygons = maybe_load_polygons(polygons, path)
+    perimeters = [polygon.length for polygon in polygons]
+
+    hist = np.histogram(perimeters, bins, density=True, **kwargs)
+    bins = ((hist[1][:-1] + hist[1][1:]) / 2 * N**0.5).tolist()
+    hist = (np.log(hist[0] / N**0.5)).tolist()
+
+    # bins = ((hist[1][:-1] + hist[1][1:]) / 2 * N).tolist() # Normalizacja jak w paperze
+    # hist = (np.log(hist[0] / len(perimeters) / N**0.5)).tolist() # Normalizacja jak w paperze
+    return bins, hist
+
+
+def areas_hist(N, polygons=None, bins=50, path=None, **kwargs):
+    """
+    Calculates areas of all given polygons and creates modified histogram by:
+    - multiplying bins values by final number of centers (N)
+    - converting areas to they probability, dividing that by square root of N and taking logarithm from it all
+    Parameters
+    ----------
+    N : int
+        Number of centers in given simulation
+    polygons : list
+    bins : int
+    path : Path
+    kwargs
+
+    Returns
+    ---
+
+    """
+    polygons = maybe_load_polygons(polygons, path)
+    areas = [polygon.area for polygon in polygons]
+
+    hist = np.histogram(areas, bins, density=True, **kwargs)
+    bins = ((hist[1][:-1] + hist[1][1:]) / 2 * N).tolist()
+    hist = (np.log(hist[0] / N)).tolist()
+
+    # hist = (np.log(hist[0] / len(areas) / N)).tolist() # Normalizacja jak w paperze
+    return bins, hist
 
 
 def flat_list(lista):
-    out = []
-    for sublist in lista:
-        for item in sublist:
-            out.append(tuple(item))
-    return out
+    return [tuple(item) for sublist in lista for item in sublist]
 
 
 def make_circles(polygons):
-    return [make_circle(np.array(poly.xy).T) for poly in polygons]
+    return [make_circle(np.array(poly.boundary.xy).T) for poly in polygons]

@@ -68,7 +68,7 @@ l = 1; d = l*2e-3;
 sim = Simulation(N, dN, M, l, d, vertices=vertices, test=True)
 output = sim.run()
 # %matplotlib widget
-animated_frames(output["animation_segments"], output["animation_segments_index"], output["animation_vertices"])b
+animated_frames(output["animation_segments"], output["animation_segments_index"], output["animation_vertices"])
 ```
 
 ### simple intersection
