@@ -239,7 +239,7 @@ def fi_factor(polygon):
 def perimeter_hist(N, polygons=None, bins=50, path=None, **kwargs):
     """
     Calculates perimeters of all given polygons and creates modified histogram by:
-    - multiplying bins values by final number of centers (N)
+    - multiplying bins values by square root of final number of centers (N)
     - converting perimeters to they probability, dividing that by square root of N and taking logarithm from it all
     Parameters
     ----------
@@ -262,7 +262,6 @@ def perimeter_hist(N, polygons=None, bins=50, path=None, **kwargs):
     hist = (np.log(hist[0] / N**0.5)).tolist()
 
     # bins = ((hist[1][:-1] + hist[1][1:]) / 2 * N).tolist() # Normalizacja jak w paperze
-    # hist = (np.log(hist[0] / len(perimeters) / N**0.5)).tolist() # Normalizacja jak w paperze
     return bins, hist
 
 
@@ -291,7 +290,6 @@ def areas_hist(N, polygons=None, bins=50, path=None, **kwargs):
     bins = ((hist[1][:-1] + hist[1][1:]) / 2 * N).tolist()
     hist = (np.log(hist[0] / N)).tolist()
 
-    # hist = (np.log(hist[0] / len(areas) / N)).tolist() # Normalizacja jak w paperze
     return bins, hist
 
 
