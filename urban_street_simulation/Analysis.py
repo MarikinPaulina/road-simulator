@@ -192,7 +192,8 @@ def fi_hist(polygons=None, bins=50, path=None, **kwargs):
 
     Returns
     -------
-
+    bins: list
+    hist: list
     """
     polygons = maybe_load_polygons(polygons, path)
     fi = [fi_factor(polygon) for polygon in polygons]
@@ -252,7 +253,8 @@ def perimeter_hist(N, polygons=None, bins=50, path=None, **kwargs):
 
     Returns
     -------
-
+    bins: list
+    hist: list
     """
     polygons = maybe_load_polygons(polygons, path)
     perimeters = [polygon.length for polygon in polygons]
@@ -280,8 +282,9 @@ def areas_hist(N, polygons=None, bins=50, path=None, **kwargs):
     kwargs
 
     Returns
-    ---
-
+    -------
+    bins: list
+    hist: list
     """
     polygons = maybe_load_polygons(polygons, path)
     areas = [polygon.area for polygon in polygons]
